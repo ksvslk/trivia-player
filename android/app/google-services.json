@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "730456293701",
+    "project_id": "operation-veritas-1337",
+    "storage_bucket": "operation-veritas-1337.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:730456293701:android:9c9374359bb4dcab22fe2c",
+        "android_client_info": {
+          "package_name": "com.example.operation_veritas"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBEP260dCyDgXY8yNbo1ursQEkx5Dswa-I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
