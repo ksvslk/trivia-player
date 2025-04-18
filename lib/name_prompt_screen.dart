@@ -1,6 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:operation_veritas/trivia_chat.dart';
+import 'package:operation_veritas/chat_page/trivia_chat.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class NamePromptScreen extends StatefulWidget {

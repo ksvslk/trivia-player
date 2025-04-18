@@ -1,5 +1,7 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ic_launcher_foreground">?android:colorBackground</color>
-    <color name="ic_launcher_background">?android:colorBackground</color>
+  <color name="splashscreen_background">#ffffff</color>
+  <color name="iconBackground">#ffffff</color>
+  <color name="colorPrimary">#023c69</color>
+  <color name="colorPrimaryDark">#ffffff</color>
+  <color name="status_bar_color">#ffffff</color>
 </resources>
