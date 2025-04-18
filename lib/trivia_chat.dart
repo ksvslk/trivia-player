@@ -235,7 +235,7 @@ class _TriviaChatState extends State<TriviaChat> {
             ),
           ),
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(16),
             child: Row(
               children: [
                 Expanded(
