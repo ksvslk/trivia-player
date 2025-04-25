@@ -31,6 +31,7 @@ class MessageListView extends StatelessWidget {
         return MessageBubble(
           message: message,
           isCurrentUser: isCurrentUser,
+          playerId: currentUserId,
           formatTimestamp: formatTimestamp,
         );
       },

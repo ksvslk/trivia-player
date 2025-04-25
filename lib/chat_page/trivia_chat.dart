@@ -89,6 +89,7 @@ class _TriviaChatState extends State<TriviaChat> {
         playerUid: message['id'] ?? '',
         name: message['name'] ?? 'Unknown',
         text: message['text'] ?? '',
+        badgeText: message['badgeText'] ?? '',
         isBot: message['isBot'] ?? false,
         timestamp: message['timestamp'] ?? 0,
         roundNumber: message['roundNumber'] ?? -1,

@@ -4,14 +4,14 @@
       "android": {
         "default": {
           "projectId": "operation-veritas-1337",
-          "appId": "1:730456293701:android:9c9374359bb4dcab22fe2c",
+          "appId": "1:730456293701:android:5eb3afd428f8372522fe2c",
           "fileOutput": "android/app/google-services.json"
         }
       },
       "ios": {
         "default": {
           "projectId": "operation-veritas-1337",
-          "appId": "1:730456293701:ios:ef59edf97f172c4222fe2c",
+          "appId": "1:730456293701:ios:d386014df1829d1022fe2c",
           "uploadDebugSymbols": false,
           "fileOutput": "ios/Runner/GoogleService-Info.plist"
         }
@@ -20,8 +20,8 @@
         "lib/firebase_options.dart": {
           "projectId": "operation-veritas-1337",
           "configurations": {
-            "android": "1:730456293701:android:9c9374359bb4dcab22fe2c",
-            "ios": "1:730456293701:ios:ef59edf97f172c4222fe2c"
+            "android": "1:730456293701:android:5eb3afd428f8372522fe2c",
+            "ios": "1:730456293701:ios:d386014df1829d1022fe2c"
           }
         }
       }

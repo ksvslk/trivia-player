@@ -51,18 +51,22 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyBEP260dCyDgXY8yNbo1ursQEkx5Dswa-I',
-    appId: '1:730456293701:android:9c9374359bb4dcab22fe2c',
+    appId: '1:730456293701:android:5eb3afd428f8372522fe2c',
     messagingSenderId: '730456293701',
     projectId: 'operation-veritas-1337',
+    databaseURL: 'https://operation-veritas-1337-default-rtdb.firebaseio.com',
     storageBucket: 'operation-veritas-1337.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyAP4_sz8W4wTFvKfgGz5C0OmZKpv508iII',
-    appId: '1:730456293701:ios:ef59edf97f172c4222fe2c',
+    appId: '1:730456293701:ios:d386014df1829d1022fe2c',
     messagingSenderId: '730456293701',
     projectId: 'operation-veritas-1337',
+    databaseURL: 'https://operation-veritas-1337-default-rtdb.firebaseio.com',
     storageBucket: 'operation-veritas-1337.firebasestorage.app',
-    iosBundleId: 'com.example.operationVeritas',
+    androidClientId: '730456293701-k151528p0rotahut8imrntiej2g0o46n.apps.googleusercontent.com',
+    iosBundleId: 'com.indest.triviaplayer',
   );
+
 }

@@ -1,5 +1,6 @@
 class Message {
   final String text;
+  final String badgeText;
   final bool isBot;
   final int timestamp;
   final String name;
@@ -13,6 +14,7 @@ class Message {
 
   Message(
       {required this.text,
+      required this.badgeText,
       required this.isBot,
       required this.timestamp,
       required this.name,

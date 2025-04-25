@@ -1,18 +1,32 @@
 {
   "project_info": {
     "project_number": "730456293701",
+    "firebase_url": "https://operation-veritas-1337-default-rtdb.firebaseio.com",
     "project_id": "operation-veritas-1337",
     "storage_bucket": "operation-veritas-1337.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:730456293701:android:9c9374359bb4dcab22fe2c",
+        "mobilesdk_app_id": "1:730456293701:android:5eb3afd428f8372522fe2c",
         "android_client_info": {
-          "package_name": "com.example.operation_veritas"
+          "package_name": "com.indest.triviaplayer"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "730456293701-k151528p0rotahut8imrntiej2g0o46n.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.indest.triviaplayer",
+            "certificate_hash": "603f1a405b81549a9e6a0d029ec8f7d42f4e473b"
+          }
+        },
+        {
+          "client_id": "730456293701-nepun8t1d5u90rm9qrohhjbb9ujp7d5o.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBEP260dCyDgXY8yNbo1ursQEkx5Dswa-I"
@@ -20,7 +34,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "730456293701-nepun8t1d5u90rm9qrohhjbb9ujp7d5o.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

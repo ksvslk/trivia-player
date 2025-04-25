@@ -4,12 +4,14 @@ import 'package:operation_veritas/chat_page/message.dart';
 class MessageBubble extends StatelessWidget {
   final Message message;
   final bool isCurrentUser;
+  final String? playerId;
   final String Function(int) formatTimestamp;
 
   const MessageBubble({
     super.key,
     required this.message,
     required this.isCurrentUser,
+    required this.playerId,
     required this.formatTimestamp,
   });
 
@@ -18,54 +20,65 @@ class MessageBubble extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CircleAvatar(
-            radius: 20,
-            backgroundColor: message.isBot
-                ? colorScheme.outlineVariant
-                : (isCurrentUser
-                    ? colorScheme.tertiaryContainer
-                    : colorScheme.secondary),
-            child: Center(
-              child: Transform.translate(
-                offset: const Offset(0, 0),
-                child: Text(
-                  message.isBot ? "🦁" : (message.name.substring(0, 1)),
-                  style: TextStyle(
-                    fontFamily: 'WorkSans',
-                    fontSize: message.isBot ? 22 : 16,
-                    height: 1,
-                    color: (isCurrentUser
-                        ? colorScheme.onTertiaryContainer
-                        : colorScheme.onSecondary),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
+                    Container(
+                      width:
+                          22, // Diameter of the original CircleAvatar (radius * 2)
+                      height:
+                          22, // Diameter of the original CircleAvatar (radius * 2)
+                      decoration: BoxDecoration(
+                        color: message.isBot
+                            ? colorScheme.outlineVariant
+                            : (isCurrentUser
+                                ? colorScheme.tertiaryContainer
+                                : colorScheme.secondary),
+                        borderRadius: BorderRadius.circular(
+                            6.0), // Adjust the value (e.g., 4.0, 8.0) for desired corner roundness
+                      ),
+                      child: Center(
+                        // Keep the existing child content
+                        child: Transform.translate(
+                          offset: const Offset(0,
+                              0), // This offset seems unnecessary if it's always (0,0)
+                          child: Text(
+                            message.isBot
+                                ? "🦉"
+                                : (message.name.substring(0, 1)),
+                            style: TextStyle(
+                              fontFamily: 'WorkSans',
+                              fontSize: message.isBot ? 12 : 8,
+                              height: 1,
+                              color: (isCurrentUser
+                                  ? colorScheme.onTertiaryContainer
+                                  : colorScheme.onSecondary),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
                     Text(
-                      !message.isBot ? message.name : "Host",
+                      !message.isBot ? message.name : (message.badgeText == '' ? 'Host' : ""),
                       style: TextStyle(
-                        fontSize: 10,
+                        fontSize: 12,
                         fontFamily: 'WorkSans',
                         color: colorScheme.onSurface,
                       ),
                     ),
-                    const SizedBox(width: 4),
-                    if (message.isBot && (message.messageType == 'question' || message.messageType == 'answer'))
+                    SizedBox(width: message.isBot ? 0 : 4),
+                    if (message.isBot && message.badgeText != '')
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 2),
+                            horizontal: 4, vertical: 3),
                         decoration: BoxDecoration(
                           color: message.messageType == 'question'
                               ? colorScheme.tertiary
@@ -73,9 +86,9 @@ class MessageBubble extends StatelessWidget {
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
-                          message.messageType == 'question' ? 'NEW QUESTION' : 'CORRECT!',
+                          message.badgeText,
                           style: TextStyle(
-                            fontSize: 8,
+                            fontSize: 9,
                             fontWeight: FontWeight.bold,
                             fontFamily: 'WorkSans',
                             color: message.messageType == 'question'
@@ -84,6 +97,7 @@ class MessageBubble extends StatelessWidget {
                           ),
                         ),
                       ),
+                    /*
                     const Spacer(),
                     Text(
                       formatTimestamp(message.timestamp),
@@ -93,6 +107,7 @@ class MessageBubble extends StatelessWidget {
                         fontSize: 10,
                       ),
                     ),
+                    */
                   ],
                 ),
                 const SizedBox(height: 4),
@@ -125,7 +140,6 @@ class MessageBubble extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(width: 24),
         ],
       ),
     );

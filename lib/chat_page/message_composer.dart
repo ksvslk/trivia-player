@@ -15,7 +15,7 @@ class MessageComposer extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
       child: Row(
         children: [
           Expanded(
