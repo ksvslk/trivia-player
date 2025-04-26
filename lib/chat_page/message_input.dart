@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-class MessageComposer extends StatelessWidget {
+class MessageInput extends StatelessWidget {
   final TextEditingController controller;
   final VoidCallback onSend;
 
-  const MessageComposer({
+  const MessageInput({
     super.key,
     required this.controller,
     required this.onSend,

@@ -5,7 +5,7 @@ import 'package:operation_veritas/audio/audio_controller.dart';
 import 'package:operation_veritas/audio/sounds.dart';
 import 'package:operation_veritas/chat_page/connection_status_icon.dart';
 import 'package:operation_veritas/chat_page/message.dart';
-import 'package:operation_veritas/chat_page/message_composer.dart';
+import 'package:operation_veritas/chat_page/message_input.dart';
 import 'package:operation_veritas/chat_page/message_list_view.dart';
 import 'package:operation_veritas/chat_page/question_timer.dart';
 import 'package:operation_veritas/settings_menu.dart';
@@ -137,15 +137,17 @@ class _TriviaChatState extends State<TriviaChat> {
       });
       _controller.clear();
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to send message: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to send message: $e')),
+        );
+      }
     }
   }
 
   String _formatTimestamp(int timestamp) {
     final dateTime = DateTime.fromMillisecondsSinceEpoch(timestamp);
-    return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}:${dateTime.second.toString().padLeft(2, '0')}';
+    return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}}';
   }
 
   @override
@@ -179,11 +181,11 @@ class _TriviaChatState extends State<TriviaChat> {
                         formatTimestamp: _formatTimestamp,
                       ),
           ),
-          MessageComposer(
+          MessageInput(
             controller: _controller,
             onSend: () {
               if (_controller.text.isNotEmpty) {
-                audioController.playSfx(SfxType.rotate);
+                //audioController.playSfx(SfxType.rotate);
                 _sendMessage();
               }
             },

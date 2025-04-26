@@ -22,14 +22,16 @@ class MessageListView extends StatelessWidget {
       controller: scrollController,
       reverse: true,
       shrinkWrap: true,
+      padding: EdgeInsets.only(top: 8.0),
       itemCount: messages.length,
-      padding: const EdgeInsets.all(8),
       itemBuilder: (context, index) {
         final message = messages[messages.length - index - 1];
+        final messageBefore = messages.length - index - 2 >= 0 ? messages.elementAt(messages.length - index - 2) : message;
         final isCurrentUser = message.playerUid == currentUserId;
 
         return MessageBubble(
           message: message,
+          messageBefore: messageBefore,
           isCurrentUser: isCurrentUser,
           playerId: currentUserId,
           formatTimestamp: formatTimestamp,
