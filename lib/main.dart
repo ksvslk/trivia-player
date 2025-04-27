@@ -8,6 +8,8 @@ import 'package:flutter/services.dart';
 
 import 'package:logging/logging.dart';
 import 'package:operation_veritas/name_prompt_screen.dart';
+import 'package:operation_veritas/trivia_service/message_visibility.dart';
+import 'package:operation_veritas/trivia_service/trivia_service.dart';
 import 'package:provider/provider.dart';
 import 'dart:developer' as dev;
 import 'settings/persistence/settings_persistence.dart';
@@ -112,6 +114,12 @@ class MyApp extends StatelessWidget {
             return audio;
           },
           dispose: (context, audio) => audio.dispose(),
+        ),
+         ChangeNotifierProvider(
+          create: (context) => TriviaService(),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => BannerMessageVisibility(),
         ),
       ],
       builder: (context, child) {
