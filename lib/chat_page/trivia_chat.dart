@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:operation_veritas/audio/audio_controller.dart';
 import 'package:operation_veritas/chat_page/connection_status_icon.dart';
 import 'package:operation_veritas/chat_page/message_input.dart';
@@ -75,7 +76,8 @@ class _TriviaChatState extends State<TriviaChat> {
   @override
   Widget build(BuildContext context) {
     final audioController = context.read<AudioController>();
-    return Scaffold(
+    return SafeArea(child: Scaffold(
+      /*
       appBar: AppBar(
         title: Consumer<TriviaService>(
           builder: (context, service, child) {
@@ -95,6 +97,7 @@ class _TriviaChatState extends State<TriviaChat> {
           ),
         ],
       ),
+      */
       body: Column(
         children: [
           Consumer2<TriviaService, BannerMessageVisibility>(
@@ -112,12 +115,14 @@ class _TriviaChatState extends State<TriviaChat> {
                     maintainAnimation: false,
                     maintainState: false,
                     child: Container(
-                      width: double.infinity, 
+                      width: double.infinity,
                       key: ValueKey<String>('active-question-banner'),
                       color: colorScheme.surfaceContainerLow,
                       padding: EdgeInsets.all(8.0),
                       child: Text(
-                        triviaService.getActiveQuestion != null ? triviaService.getActiveQuestion!.text : '',
+                        triviaService.getActiveQuestion != null
+                            ? triviaService.getActiveQuestion!.text
+                            : '',
                         style: TextStyle(
                           color: colorScheme.onSurface,
                           fontFamily: 'Inter',
@@ -138,18 +143,18 @@ class _TriviaChatState extends State<TriviaChat> {
                     .addPostFrameCallback((_) => _checkAndScrollToBottom());
                     */
 
-                     WidgetsBinding.instance
-                    .addPostFrameCallback((_) => {
-           if (service.currentUserId == service.messages.lastOrNull?.playerUid) {
-                   _scrollController.animateTo(
-            _scrollController.position.minScrollExtent,
-            duration: const Duration(milliseconds: 250),
-            curve: Curves.easeOut,
-          )
-                }
-
+                WidgetsBinding.instance.addPostFrameCallback((_) => {
+                      if (service.currentUserId ==
+                          service.messages.lastOrNull?.playerUid)
+                        {
+                          _scrollController.animateTo(
+                            _scrollController.position.minScrollExtent,
+                            duration: const Duration(milliseconds: 250),
+                            curve: Curves.easeOut,
+                          )
+                        }
                     });
-     
+
                 return service.isLoading
                     ? const Center(child: CircularProgressIndicator())
                     : service.messages.isEmpty
@@ -174,6 +179,7 @@ class _TriviaChatState extends State<TriviaChat> {
             },
           ),
         ],
+      ),
       ),
     );
   }

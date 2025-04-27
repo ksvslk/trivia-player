@@ -16,7 +16,8 @@ class MessageInput extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+      color: colorScheme.surface,
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
       child: Row(
         children: [
           Expanded(
@@ -25,8 +26,11 @@ class MessageInput extends StatelessWidget {
               maxLengthEnforcement: MaxLengthEnforcement.enforced,
               controller: controller,
               decoration: InputDecoration(
+                  filled: true,
+          fillColor: Theme.of(context).colorScheme.surfaceContainerHighest, // Use the color from the current theme's ColorScheme
                 hintText: 'Type your answer...',
                 counterText: "",
+                isDense: true,  // Add this line
                 border: const OutlineInputBorder(),
                 hintStyle: TextStyle(
                   fontFamily: 'Inter',
@@ -37,10 +41,12 @@ class MessageInput extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          FloatingActionButton(
+          FloatingActionButton.small(
             elevation: 0,
             onPressed: onSend,
-            child: const Icon(Icons.send),
+            child: const Icon(
+              Icons.send
+              ),
           ),
         ],
       ),

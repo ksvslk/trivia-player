@@ -125,40 +125,81 @@ class MyApp extends StatelessWidget {
       builder: (context, child) {
         final settingsController = context.read<SettingsController>();
 
-        return ValueListenableBuilder(
-          valueListenable: settingsController.seedColor,
-          builder: (context, changingSeedColor, child) {
-            SystemChrome.setPreferredOrientations([
-              DeviceOrientation.portraitUp,
-              DeviceOrientation.portraitDown,
-            ]);
-            return MaterialApp(
-                title: 'Trivia Chat',
-                debugShowCheckedModeBanner: false,
-                theme: ThemeData(
-                    scaffoldBackgroundColor: Colors.white,
-                    useMaterial3: true,
-                    // Define the default brightness and colors.
-                    colorScheme: ColorScheme.fromSeed(
-                      seedColor: Color(changingSeedColor),
-                      brightness: Brightness.light,
-                    ),
-                    fontFamily: 'Inter'),
-                darkTheme: ThemeData(
-                    scaffoldBackgroundColor: Colors.black,
-                    useMaterial3: true,
-                    // Define the default brightness and colors.
-                    colorScheme: ColorScheme.fromSeed(
-                      seedColor: Color(changingSeedColor),
-                      brightness: Brightness.dark,
-                    ),
-                    fontFamily: 'Inter'),
-                home: const Scaffold(
-                  body: NamePromptScreen(),
-                ));
+   return ValueListenableBuilder(
+      valueListenable: settingsController.seedColor,
+      builder: (context, changingSeedColor, child) {
+        // Set preferred orientations and system UI modes here if needed
+        SystemChrome.setPreferredOrientations([
+          DeviceOrientation.portraitUp,
+          DeviceOrientation.portraitDown,
+        ]);
+        SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom]);
+
+        // Define your light and dark themes
+        final lightTheme = ThemeData(
+          scaffoldBackgroundColor: Colors.white,
+          useMaterial3: true,
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: Color(changingSeedColor),
+            brightness: Brightness.light,
+          ),
+          fontFamily: 'Inter',
+        );
+
+        final darkTheme = ThemeData(
+          scaffoldBackgroundColor: Colors.black,
+          useMaterial3: true,
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: Color(changingSeedColor),
+            brightness: Brightness.dark,
+          ),
+          fontFamily: 'Inter',
+        );
+
+
+        return MaterialApp(
+          title: 'Trivia Chat',
+          debugShowCheckedModeBanner: false,
+          theme: lightTheme, // Provide the light theme
+          darkTheme: darkTheme, // Provide the dark theme
+          // themeMode: settingsController.themeMode, // You might have a themeMode setting too
+
+          // Use the builder callback to access the theme applied by MaterialApp
+          builder: (BuildContext context, Widget? child) {
+            // Get the actual theme data that MaterialApp decided to use
+            final ThemeData resolvedTheme = Theme.of(context);
+            final bool isDarkMode = resolvedTheme.brightness == Brightness.dark;
+
+            // *** Set the System UI Overlay Style here ***
+            SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+              // Use colors from the resolved theme's colorScheme
+              systemNavigationBarColor: isDarkMode
+                  ? resolvedTheme.colorScheme.surface // Or another color for dark mode
+                  : resolvedTheme.colorScheme.surface, // Or another color for light mode
+              systemNavigationBarDividerColor: isDarkMode
+                  ? resolvedTheme.colorScheme.surface
+                  : resolvedTheme.colorScheme.surface,
+              // Set icon brightness based on the resolved theme's brightness
+              systemNavigationBarIconBrightness: isDarkMode ? Brightness.light : Brightness.dark,
+
+              // You can also set status bar colors here if needed,
+              // also based on resolvedTheme.brightness
+              // statusBarColor: Colors.transparent,
+              // statusBarIconBrightness: isDarkMode ? Brightness.light : Brightness.dark,
+              // statusBarBrightness: isDarkMode ? Brightness.light : Brightness.dark, // iOS
+            ));
+
+            // Return the child (which is your Navigator/home widget)
+            return child!;
           },
+           // Your home widget goes here
+          home: const Scaffold(
+            body: NamePromptScreen(),
+          ),
         );
       },
-    ));
+    );
+  }
+  ));
   }
 }

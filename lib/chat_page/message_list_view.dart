@@ -28,7 +28,7 @@ class MessageListView extends StatelessWidget {
       controller: scrollController,
       reverse: true,
       shrinkWrap: true,
-      padding: const EdgeInsets.only(top: 8.0),
+      padding: const EdgeInsets.only(top: 8.0, bottom: 4.0),
       itemCount: messages.length,
       itemBuilder: (context, index) {
         final message = messages[messages.length - index - 1];
