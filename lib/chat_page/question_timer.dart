@@ -37,6 +37,7 @@ class _QuestionTimerState extends State<QuestionTimer> {
         
         // Check if this is a question message with timing information
         if (message['isBot'] == true && 
+            message['messageType'] == 'question' &&
             message['questionStartTime'] != null && 
             message['questionEndTime'] != null) {
           setState(() {
@@ -72,6 +73,9 @@ class _QuestionTimerState extends State<QuestionTimer> {
       // Stop timer when time is up
       if (remainingMs <= 0) {
         _timer?.cancel();
+        setState(() {
+          _lastMessage = null;
+        });
       }
     });
   }
