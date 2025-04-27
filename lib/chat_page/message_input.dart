@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class MessageInput extends StatelessWidget {
   final TextEditingController controller;
@@ -20,9 +21,12 @@ class MessageInput extends StatelessWidget {
         children: [
           Expanded(
             child: TextField(
+              maxLength: 100,
+              maxLengthEnforcement: MaxLengthEnforcement.enforced,
               controller: controller,
               decoration: InputDecoration(
                 hintText: 'Type your answer...',
+                counterText: "",
                 border: const OutlineInputBorder(),
                 hintStyle: TextStyle(
                   fontFamily: 'Inter',
