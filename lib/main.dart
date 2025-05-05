@@ -1,12 +1,16 @@
+import 'dart:math';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:logging/logging.dart';
-import 'package:operation_veritas/name_prompt_screen.dart';
+import 'package:operation_veritas/change_notifier/blocked_players.dart';
+import 'package:operation_veritas/chat_page/trivia_chat.dart';
 import 'package:operation_veritas/change_notifier/message_visibility.dart';
 import 'package:operation_veritas/change_notifier/trivia_service.dart';
+import 'package:operation_veritas/settings/blocked_players_dialog.dart';
 import 'package:provider/provider.dart';
 import 'dart:developer' as dev;
 import 'settings/persistence/settings_persistence.dart';
@@ -16,7 +20,6 @@ import 'settings/settings_controller.dart';
 import 'audio/audio_controller.dart';
 import 'package:firebase_core/firebase_core.dart';
 
-
 void setupConnectionTracking() {
   final connectedRef = FirebaseDatabase.instance.ref(".info/connected");
   final playerCountRef = FirebaseDatabase.instance.ref("player_count");
@@ -24,10 +27,9 @@ void setupConnectionTracking() {
   connectedRef.onValue.listen((event) {
     final connected = event.snapshot.value as bool? ?? false;
     if (connected) {
-      
       // Setup disconnect handler first
       playerCountRef.onDisconnect().set(ServerValue.increment(-1));
-      
+
       // Correct transaction return type
       playerCountRef.runTransaction((Object? currentValue) {
         final currentCount = (currentValue ?? 0) as int;
@@ -88,114 +90,153 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppLifecycleObserver(
-        child: MultiProvider(
-      providers: [
-        Provider<SettingsController>(
-          lazy: false,
-          create: (context) => SettingsController(
-            persistence: settingsPersistence,
-          )..loadStateFromPersistence(),
-        ),
-        ProxyProvider2<SettingsController, ValueNotifier<AppLifecycleState>,
-            AudioController>(
-          // Ensures that the AudioController is created on startup,
-          // and not "only when it's needed", as is default behavior.
-          // This way, music starts immediately.
-          lazy: false,
-          create: (context) => AudioController()..initialize(),
-          update: (context, settings, lifecycleNotifier, audio) {
-            if (audio == null) throw ArgumentError.notNull();
-            audio.attachSettings(settings);
-            audio.attachLifecycleNotifier(lifecycleNotifier);
-            return audio;
-          },
-          dispose: (context, audio) => audio.dispose(),
-        ),
-         ChangeNotifierProvider(
-          create: (context) => TriviaService(),
-        ),
-        ChangeNotifierProvider(
-          create: (context) => BannerMessageVisibility(),
-        ),
-      ],
-      builder: (context, child) {
-        final settingsController = context.read<SettingsController>();
-
-   return ValueListenableBuilder(
-      valueListenable: settingsController.seedColor,
-      builder: (context, changingSeedColor, child) {
-        // Set preferred orientations and system UI modes here if needed
-        SystemChrome.setPreferredOrientations([
-          DeviceOrientation.portraitUp,
-          DeviceOrientation.portraitDown,
-        ]);
-        SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom]);
-
-        // Define your light and dark themes
-        final lightTheme = ThemeData(
-          scaffoldBackgroundColor: Colors.white,
-          useMaterial3: true,
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: Color(changingSeedColor),
-            brightness: Brightness.light,
+      child: MultiProvider(
+        providers: [
+          Provider<SettingsController>(
+            lazy: false,
+            create: (context) => SettingsController(
+              persistence: settingsPersistence,
+            )..loadStateFromPersistence(),
           ),
-          fontFamily: 'Inter',
-        );
-
-        final darkTheme = ThemeData(
-          scaffoldBackgroundColor: Colors.black,
-          useMaterial3: true,
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: Color(changingSeedColor),
-            brightness: Brightness.dark,
+          ProxyProvider2<SettingsController, ValueNotifier<AppLifecycleState>,
+              AudioController>(
+            lazy: false,
+            create: (context) => AudioController()..initialize(),
+            update: (context, settings, lifecycleNotifier, audio) {
+              if (audio == null) throw ArgumentError.notNull();
+              audio.attachSettings(settings);
+              audio.attachLifecycleNotifier(lifecycleNotifier);
+              return audio;
+            },
+            dispose: (context, audio) => audio.dispose(),
           ),
-          fontFamily: 'Inter',
-        );
-
-
-        return MaterialApp(
-          title: 'Trivia Chat',
-          debugShowCheckedModeBanner: false,
-          theme: lightTheme, // Provide the light theme
-          darkTheme: darkTheme, // Provide the dark theme
-          // themeMode: settingsController.themeMode, // You might have a themeMode setting too
-
-          // Use the builder callback to access the theme applied by MaterialApp
-          builder: (BuildContext context, Widget? child) {
-            // Get the actual theme data that MaterialApp decided to use
-            final ThemeData resolvedTheme = Theme.of(context);
-            final bool isDarkMode = resolvedTheme.brightness == Brightness.dark;
-
-            // *** Set the System UI Overlay Style here ***
-            SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-              // Use colors from the resolved theme's colorScheme
-              systemNavigationBarColor: isDarkMode
-                  ? resolvedTheme.colorScheme.surface // Or another color for dark mode
-                  : resolvedTheme.colorScheme.surface, // Or another color for light mode
-              systemNavigationBarDividerColor: isDarkMode
-                  ? resolvedTheme.colorScheme.surface
-                  : resolvedTheme.colorScheme.surface,
-              // Set icon brightness based on the resolved theme's brightness
-              systemNavigationBarIconBrightness: isDarkMode ? Brightness.light : Brightness.dark,
-
-              // You can also set status bar colors here if needed,
-              // also based on resolvedTheme.brightness
-              // statusBarColor: Colors.transparent,
-              // statusBarIconBrightness: isDarkMode ? Brightness.light : Brightness.dark,
-              // statusBarBrightness: isDarkMode ? Brightness.light : Brightness.dark, // iOS
-            ));
-
-            // Return the child (which is your Navigator/home widget)
-            return child!;
-          },
-           // Your home widget goes here
-          home: const Scaffold(
-            body: NamePromptScreen(),
+          ChangeNotifierProvider(
+            create: (context) => TriviaService(),
           ),
-        );
-      },
+          ChangeNotifierProvider(
+            create: (context) => BannerMessageVisibility(),
+          ),
+          ChangeNotifierProxyProvider<SettingsController, BlockedPlayers>(
+            create: (_) => BlockedPlayers(),
+            update: (_, settingsController, blockedPlayers) {
+              blockedPlayers!.updateSettings(settingsController);
+              return blockedPlayers;
+            },
+          ),
+        ],
+        builder: (context, child) {
+          final settingsController = context.read<SettingsController>();
+
+          return ValueListenableBuilder(
+            valueListenable: settingsController.seedColor,
+            builder: (context, changingSeedColor, _) {
+              SystemChrome.setPreferredOrientations([
+                DeviceOrientation.portraitUp,
+                DeviceOrientation.portraitDown,
+              ]);
+              SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
+                  overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom]);
+
+              final lightTheme = ThemeData(
+                scaffoldBackgroundColor: Colors.white,
+                useMaterial3: true,
+                colorScheme: ColorScheme.fromSeed(
+                  seedColor: Color(changingSeedColor),
+                  brightness: Brightness.light,
+                ),
+                fontFamily: 'Inter',
+              );
+
+              final darkTheme = ThemeData(
+                scaffoldBackgroundColor: Colors.black,
+                useMaterial3: true,
+                colorScheme: ColorScheme.fromSeed(
+                  seedColor: Color(changingSeedColor),
+                  brightness: Brightness.dark,
+                ),
+                fontFamily: 'Inter',
+              );
+
+              return MaterialApp(
+                title: 'Trivia Chat',
+                debugShowCheckedModeBanner: false,
+                theme: lightTheme,
+                darkTheme: darkTheme,
+                builder: (BuildContext context, Widget? child) {
+                  final ThemeData resolvedTheme = Theme.of(context);
+                  final bool isDarkMode =
+                      resolvedTheme.brightness == Brightness.dark;
+
+                  SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+                    systemNavigationBarColor: resolvedTheme.colorScheme.surface,
+                    systemNavigationBarDividerColor:
+                        resolvedTheme.colorScheme.surface,
+                    systemNavigationBarIconBrightness:
+                        isDarkMode ? Brightness.light : Brightness.dark,
+                  ));
+
+                  return child!;
+                },
+                home: Builder(
+                  builder: (context) => Scaffold(
+                    onDrawerChanged: (isOpened) {
+                      if (!isOpened) {
+                        // Use a post-frame callback to ensure unfocus happens after the build
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          FocusScope.of(context).unfocus();
+                        });
+                      }
+                    },
+                    drawer: Drawer(
+                      child: SafeArea(
+                        child: ListView(
+                          padding: EdgeInsets.zero,
+                          children: [
+                            ListTile(
+                              title: const Text('Blocked Users'),
+                              onTap: () {
+                                Navigator.pop(context); // Close drawer
+                                showDialog(
+                                  context: context,
+                                  builder: (_) => const BlockedPlayersDialog(),
+                                );
+                              },
+                            ),
+                            ListTile(
+                              title: const Text('Sound'),
+                              onTap: () {},
+                            ),
+                            ListTile(
+                              title: const Text('Credits'),
+                              onTap: () {},
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    body: TriviaChat(
+                      name: "An_${Random().nextInt(1000)}",
+                      userColor: _generateRandomDarkerColor(),
+                    ),
+                  ),
+                ),
+              );
+            },
+          );
+        },
+      ),
     );
   }
-  ));
+
+  // Function to generate a random darker color
+  Color _generateRandomDarkerColor() {
+    Random random = Random();
+    // Generate random RGB values and adjust to ensure it's dark
+    int r =
+        random.nextInt(100) + 50; // Ensuring a darker value (50 to 150 range)
+    int g = random.nextInt(100) + 50;
+    int b = random.nextInt(100) + 50;
+
+    return Color.fromRGBO(r, g, b, 1);
   }
 }

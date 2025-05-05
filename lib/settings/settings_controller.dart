@@ -48,4 +48,16 @@ class SettingsController {
     return await _persistence.getToken();
   }
 
+  Future<Map<String, String>> getBanned() async {
+    return await _persistence.getBanned();
+  }
+  
+  Future<Map<String, String>> setBan(String id, String name) async {
+   return await _persistence.setBan(id, name);
+  }
+
+  Future<Map<String, String>> removeBan(String id) async {
+    return await _persistence.removeBan(id);
+  }
+
 }

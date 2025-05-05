@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:operation_veritas/chat_page/message.dart';
+import 'package:operation_veritas/chat_page/message_avatar.dart';
 
 class MessageBubble extends StatelessWidget {
   final Message message;
@@ -24,7 +25,6 @@ class MessageBubble extends StatelessWidget {
     final lastMessageWasSameUser = 
       (message.isBot && messageBefore.isBot) ||
       (message.playerUid == messageBefore.playerUid);
-
     return Padding(
       padding: EdgeInsets.fromLTRB(16.0, lastMessageWasSameUser ? 1.0 : 4.0, 16.0, 1.0),
       child: Row(
@@ -60,11 +60,6 @@ class MessageBubble extends StatelessWidget {
             ? colorScheme.tertiaryContainer
             : colorScheme.secondary);
 
-    // Determine avatar text color
-    final avatarTextColor = isCurrentUser
-        ? colorScheme.onTertiaryContainer
-        : colorScheme.onSecondary;
-
     return [
       // Message bubble
       Flexible(
@@ -95,37 +90,8 @@ class MessageBubble extends StatelessWidget {
         ),
       ),
       const SizedBox(width: 4),
-      // Avatar
-      Container(
-        width: 30,
-        height: 30,
-        decoration: BoxDecoration(
-          color: avatarColor,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Center(
-          child: Text(
-            _getAvatarText(),
-            style: TextStyle(
-              fontFamily: 'WorkSans',
-              fontSize: message.isBot ? 18 : 16,
-              color: avatarTextColor,
-            ),
-          ),
-        ),
-      ),
+      MessageAvatar(message: message, avatarColor: avatarColor, isCurrentUser: isCurrentUser)
     ];
-  }
-
-  // Helper method to determine avatar text
-  String _getAvatarText() {
-    if (message.isBot) {
-      return "🦉";
-    } else if (message.name.isNotEmpty) {
-      return message.name.substring(0, 1).toUpperCase();
-    } else {
-      return "?";
-    }
   }
 
   // Helper method to build the bottom content (badge or name)

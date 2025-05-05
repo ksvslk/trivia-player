@@ -2,24 +2,25 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:operation_veritas/constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'settings_persistence.dart';
-
 
 /// An implementation of [SettingsPersistence] that uses
 /// `package:shared_preferences`.
 class LocalStorageSettingsPersistence extends SettingsPersistence {
   final Future<SharedPreferences> instanceFuture =
       SharedPreferences.getInstance();
-      
+
   @override
   Future<bool> getSoundsOn() async {
     final prefs = await instanceFuture;
     return prefs.getBool('soundsOn') ?? true;
   }
 
-    @override
+  @override
   Future<int> getSeedColor() async {
     final prefs = await instanceFuture;
     return prefs.getInt('seedColor') ?? C.defaultThemeColor.toARGB32();
@@ -48,19 +49,34 @@ class LocalStorageSettingsPersistence extends SettingsPersistence {
     final prefs = await instanceFuture;
     await prefs.setString('fcmToken', value);
   }
-  
+
   @override
-  Future<Set<String>> getBanned() async {
+  Future<Map<String, String>> getBanned() async {
     final prefs = await instanceFuture;
-    return prefs.getStringList('bannedUsers')?.toSet() ?? Set.of({});
-  }
-  
-  @override
-  Future<void> setBanned(String id) async {
-    final prefs = await instanceFuture;
-    final bannedUsers = prefs.getStringList('bannedUsers')?.toSet() ?? <String>{};
-    bannedUsers.add(id);
-    await prefs.setStringList('bannedUsers', bannedUsers.toList());
+    final bannedMapString = prefs.getString('bannedUsers');
+    final bannedMapObject = Map<String, String>.from(jsonDecode(bannedMapString ?? "{}"));
+    return bannedMapObject;
   }
 
+  @override
+  Future<Map<String, String>> setBan(String id, String name) async {
+    final prefs = await instanceFuture;
+    final bannedMapString = prefs.getString('bannedUsers');
+    final bannedMapObject = Map<String, String>.from(jsonDecode(bannedMapString ?? "{}"));
+    bannedMapObject[id] = name;
+    String bannedMapStringUpdated = jsonEncode(bannedMapObject);
+    await prefs.setString('bannedUsers', bannedMapStringUpdated);
+    return bannedMapObject;
+  }
+
+  @override
+  Future<Map<String, String>> removeBan(String id) async {
+   final prefs = await instanceFuture;
+    final bannedMapString = prefs.getString('bannedUsers');
+    final bannedMapObject = Map<String, String>.from(jsonDecode(bannedMapString ?? "{}"));
+    bannedMapObject.remove(id);
+    String bannedMapStringUpdated = jsonEncode(bannedMapObject);
+    await prefs.setString('bannedUsers', bannedMapStringUpdated);
+    return bannedMapObject;
+  }
 }

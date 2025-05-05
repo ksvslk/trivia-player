@@ -46,6 +46,7 @@ class _TriviaChatState extends State<TriviaChat> {
 
   @override
   Widget build(BuildContext context) {
+    
     return SafeArea(
       child: Scaffold(
         body: Column(
@@ -119,7 +120,7 @@ class _TriviaChatState extends State<TriviaChat> {
                       : service.messages.isEmpty
                           ? const Center(child: Text('No messages yet'))
                           : MessageListView(
-                              messages: service.messages,
+                              originalMessages: service.messages,
                               scrollController: _scrollController,
                               currentUserId: service.currentUserId,
                               formatTimestamp: service.formatTimestamp,
