@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:operation_veritas/chat_page/message.dart';
 import 'package:operation_veritas/chat_page/message_bubble.dart';
-import 'package:operation_veritas/trivia_service/message_visibility.dart';
-import 'package:operation_veritas/trivia_service/trivia_service.dart';
+import 'package:operation_veritas/change_notifier/message_visibility.dart';
 import 'package:provider/provider.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 

@@ -1,15 +1,12 @@
-import 'dart:io';
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:logging/logging.dart';
 import 'package:operation_veritas/name_prompt_screen.dart';
-import 'package:operation_veritas/trivia_service/message_visibility.dart';
-import 'package:operation_veritas/trivia_service/trivia_service.dart';
+import 'package:operation_veritas/change_notifier/message_visibility.dart';
+import 'package:operation_veritas/change_notifier/trivia_service.dart';
 import 'package:provider/provider.dart';
 import 'dart:developer' as dev;
 import 'settings/persistence/settings_persistence.dart';
@@ -18,7 +15,6 @@ import 'app_lifecycle/app_lifecycle.dart';
 import 'settings/settings_controller.dart';
 import 'audio/audio_controller.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
 
 
 void setupConnectionTracking() {

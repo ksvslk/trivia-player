@@ -14,8 +14,8 @@ class TriviaService extends ChangeNotifier {
   bool _isLoading = true;
   String? _currentUserId;
   String _userName = '';
-  Message? _activeQuestion = null;
-  Message? _lastMessage = null;
+  Message? _activeQuestion;
+  Message? _lastMessage;
 
 
   List<Message> get messages => List.unmodifiable(_messages);

@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:ui';
-
-import 'package:operation_veritas/C.dart';
+import 'package:operation_veritas/constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'settings_persistence.dart';
 
@@ -24,7 +22,7 @@ class LocalStorageSettingsPersistence extends SettingsPersistence {
     @override
   Future<int> getSeedColor() async {
     final prefs = await instanceFuture;
-    return prefs.getInt('seedColor') ?? C.DEFAULT_THEME_COLOR.value;
+    return prefs.getInt('seedColor') ?? C.defaultThemeColor.toARGB32();
   }
 
   @override
@@ -49,6 +47,20 @@ class LocalStorageSettingsPersistence extends SettingsPersistence {
   Future<void> setToken(String value) async {
     final prefs = await instanceFuture;
     await prefs.setString('fcmToken', value);
+  }
+  
+  @override
+  Future<Set<String>> getBanned() async {
+    final prefs = await instanceFuture;
+    return prefs.getStringList('bannedUsers')?.toSet() ?? Set.of({});
+  }
+  
+  @override
+  Future<void> setBanned(String id) async {
+    final prefs = await instanceFuture;
+    final bannedUsers = prefs.getStringList('bannedUsers')?.toSet() ?? <String>{};
+    bannedUsers.add(id);
+    await prefs.setStringList('bannedUsers', bannedUsers.toList());
   }
 
 }

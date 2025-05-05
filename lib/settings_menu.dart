@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:operation_veritas/settings/settings_controller.dart';
 import 'package:provider/provider.dart';
-import 'dart:io';
 
 enum MenuItem { theme }
 
@@ -12,16 +11,16 @@ MenuItemButton getMenuButton(Color color, SettingsController settings) {
       onPressed: () {
         settings.changeSeedColor(color);
       },
-      child: settings.seedColor.value == color.value
+      child: settings.seedColor.value == color.toARGB32()
           ? CircleAvatar(
               backgroundColor: color,
               child:
-                  Icon(Icons.check, color: color.withOpacity(0.5)))
+                  Icon(Icons.check, color: color.withValues(alpha: 0.5)))
           : CircleAvatar(backgroundColor: color));
 }
 
 class SettingsMenu extends StatefulWidget {
-  const SettingsMenu({Key? key}) : super(key: key);
+  const SettingsMenu({super.key});
 
   @override
   State<SettingsMenu> createState() => _SettingsMenuState();

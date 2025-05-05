@@ -7,10 +7,10 @@ class NamePromptScreen extends StatefulWidget {
   const NamePromptScreen({super.key});
 
   @override
-  _NamePromptScreenState createState() => _NamePromptScreenState();
+  NamePromptScreenState createState() => NamePromptScreenState();
 }
 
-class _NamePromptScreenState extends State<NamePromptScreen> {
+class NamePromptScreenState extends State<NamePromptScreen> {
   @override
   void initState() {
     super.initState();

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:flutter/widgets.dart';
-import 'package:operation_veritas/C.dart';
+import 'package:operation_veritas/constants.dart';
 import 'persistence/settings_persistence.dart';
 
 /// An class that holds settings like [playerName] or [musicOn],
@@ -15,7 +15,7 @@ class SettingsController {
   /// and sound.
 
   ValueNotifier<bool> soundsOn = ValueNotifier(false);
-  ValueNotifier<int> seedColor = ValueNotifier(C.DEFAULT_THEME_COLOR.value);
+  ValueNotifier<int> seedColor = ValueNotifier(C.defaultThemeColor.toARGB32());
 
   /// Creates a new instance of [SettingsController] backed by [persistence].
   SettingsController({required SettingsPersistence persistence})
@@ -31,7 +31,7 @@ class SettingsController {
 
   void changeSeedColor(Color color)
   {
-    seedColor.value = color.value;
+    seedColor.value = color.toARGB32();
     _persistence.saveSeedColor(seedColor.value);
   }
 

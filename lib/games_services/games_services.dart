@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
@@ -57,7 +56,7 @@ class GamesServicesController {
     try {
       final UserCredential? credential = await _getPlatformCredential();
       if (credential?.user?.uid == null) {
-        await _signInAnonymously();
+        await _signInAnonymously(); //TODO: Change to not anonymous
       }
     } catch (e) {
       await _signInAnonymously();
@@ -81,6 +80,7 @@ class GamesServicesController {
           GameCenterAuthProvider.credential(),
         );
       }
+      return null;
     } catch (err) {
       return null;
     }
