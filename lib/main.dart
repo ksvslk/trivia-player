@@ -8,8 +8,9 @@ import 'package:flutter/services.dart';
 import 'package:logging/logging.dart';
 import 'package:operation_veritas/change_notifier/blocked_players.dart';
 import 'package:operation_veritas/chat_page/trivia_chat.dart';
-import 'package:operation_veritas/change_notifier/message_visibility.dart';
+import 'package:operation_veritas/change_notifier/banner_message_visibility.dart';
 import 'package:operation_veritas/change_notifier/trivia_service.dart';
+import 'package:operation_veritas/home_screen.dart';
 import 'package:operation_veritas/settings/blocked_players_dialog.dart';
 import 'package:provider/provider.dart';
 import 'dart:developer' as dev;
@@ -157,11 +158,15 @@ class MyApp extends StatelessWidget {
                 fontFamily: 'Inter',
               );
 
+              final GlobalKey<NavigatorState> navigatorKey =
+                  GlobalKey<NavigatorState>();
+
               return MaterialApp(
                 title: 'Trivia Chat',
                 debugShowCheckedModeBanner: false,
                 theme: lightTheme,
                 darkTheme: darkTheme,
+                navigatorKey: navigatorKey, // Add navigator key here
                 builder: (BuildContext context, Widget? child) {
                   final ThemeData resolvedTheme = Theme.of(context);
                   final bool isDarkMode =
@@ -177,48 +182,10 @@ class MyApp extends StatelessWidget {
 
                   return child!;
                 },
-                home: Builder(
-                  builder: (context) => Scaffold(
-                    onDrawerChanged: (isOpened) {
-                      if (!isOpened) {
-                        // Use a post-frame callback to ensure unfocus happens after the build
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          FocusScope.of(context).unfocus();
-                        });
-                      }
-                    },
-                    drawer: Drawer(
-                      child: SafeArea(
-                        child: ListView(
-                          padding: EdgeInsets.zero,
-                          children: [
-                            ListTile(
-                              title: const Text('Blocked Users'),
-                              onTap: () {
-                                Navigator.pop(context); // Close drawer
-                                showDialog(
-                                  context: context,
-                                  builder: (_) => const BlockedPlayersDialog(),
-                                );
-                              },
-                            ),
-                            ListTile(
-                              title: const Text('Sound'),
-                              onTap: () {},
-                            ),
-                            ListTile(
-                              title: const Text('Credits'),
-                              onTap: () {},
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    body: TriviaChat(
-                      name: "An_${Random().nextInt(1000)}",
-                      userColor: _generateRandomDarkerColor(),
-                    ),
-                  ),
+                home: HomeScreen(
+                  userColor: _generateRandomDarkerColor(),
+                  navigatorKey:
+                      navigatorKey,
                 ),
               );
             },
@@ -228,8 +195,8 @@ class MyApp extends StatelessWidget {
     );
   }
 
-  // Function to generate a random darker color
-  Color _generateRandomDarkerColor() {
+
+Color _generateRandomDarkerColor() {
     Random random = Random();
     // Generate random RGB values and adjust to ensure it's dark
     int r =

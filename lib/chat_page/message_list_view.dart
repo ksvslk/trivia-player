@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:operation_veritas/change_notifier/blocked_players.dart';
 import 'package:operation_veritas/chat_page/message.dart';
 import 'package:operation_veritas/chat_page/message_bubble.dart';
-import 'package:operation_veritas/change_notifier/message_visibility.dart';
+import 'package:operation_veritas/change_notifier/banner_message_visibility.dart';
 import 'package:provider/provider.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
@@ -25,9 +25,9 @@ class MessageListView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<BlockedPlayers>(builder:
         (BuildContext context, BlockedPlayers blockedPlayers, Widget? child) {
-          
       final messages = originalMessages
-          .where((el) => !blockedPlayers.blockedPlayers.containsKey(el.playerUid))
+          .where(
+              (el) => !blockedPlayers.blockedPlayers.containsKey(el.playerUid))
           .toList();
 
       return ListView.builder(
@@ -52,7 +52,7 @@ class MessageListView extends StatelessWidget {
                 final isVisible = visiblePercentage > 75;
                 context
                     .read<BannerMessageVisibility>()
-                    .setVisibility(isVisible);
+                    .setQuestionVisibilityOnScreen(isVisible);
               },
               child: MessageBubble(
                 message: message,
@@ -62,6 +62,15 @@ class MessageListView extends StatelessWidget {
                 formatTimestamp: formatTimestamp,
               ),
             );
+          } else {
+            // No direct state change during build!
+            // Instead, use a post-frame callback if needed
+            if (activeQuestion == null) {
+              // Schedule the state change for after this frame completes
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                context.read<BannerMessageVisibility>().setIsRoundBreak(true);
+              });
+            }
           }
 
           return MessageBubble(

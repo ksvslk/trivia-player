@@ -19,7 +19,9 @@ class BlockedPlayers extends ChangeNotifier {
     notifyListeners();
   }
 
-  void updateSettings(SettingsController settingsController) {
+  void updateSettings(SettingsController settingsController) async {
     _settingsController = settingsController;
+    _blockedPlayers = await _settingsController.getBanned();
+    notifyListeners();
   }
 }

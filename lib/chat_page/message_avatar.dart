@@ -11,7 +11,10 @@ class MessageAvatar extends StatefulWidget {
   final bool isCurrentUser;
 
   const MessageAvatar(
-      {super.key, required this.avatarColor, required this.message, required this.isCurrentUser});
+      {super.key,
+      required this.avatarColor,
+      required this.message,
+      required this.isCurrentUser});
 
   @override
   State<MessageAvatar> createState() => _MessageAvatarState();
@@ -27,9 +30,7 @@ class _MessageAvatarState extends State<MessageAvatar> {
   }
 
   String _getAvatarText() {
-    if (widget.message.isBot) {
-      return "🦉";
-    } else if (widget.message.name.isNotEmpty) {
+    if (widget.message.name.isNotEmpty) {
       return widget.message.name.substring(0, 1).toUpperCase();
     } else {
       return "?";
@@ -38,7 +39,6 @@ class _MessageAvatarState extends State<MessageAvatar> {
 
   @override
   Widget build(BuildContext context) {
-
     final blockedPlayers = context.read<BlockedPlayers>();
 
     return MenuAnchor(
@@ -85,14 +85,19 @@ class _MessageAvatarState extends State<MessageAvatar> {
           child: CircleAvatar(
             radius: 15,
             backgroundColor: widget.avatarColor,
-            child: Text(
-              _getAvatarText(),
-              style: TextStyle(
-                fontFamily: 'WorkSans',
-                fontSize: widget.message.isBot ? 18 : 16,
-                color: widget.avatarColor.contrastingTextColor,
-              ),
-            ),
+            child: widget.message.isBot
+                ? ImageIcon(
+                    AssetImage("assets/images/white_icon.png"),
+                    color: widget.avatarColor.contrastingTextColor,
+                  )
+                : Text(
+                    _getAvatarText(),
+                    style: TextStyle(
+                      fontFamily: 'WorkSans',
+                      fontSize: widget.message.isBot ? 18 : 16,
+                      color: widget.avatarColor.contrastingTextColor,
+                    ),
+                  ),
           ),
         );
       },

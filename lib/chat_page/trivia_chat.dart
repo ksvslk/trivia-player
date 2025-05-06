@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:operation_veritas/chat_page/message_input.dart';
 import 'package:operation_veritas/chat_page/message_list_view.dart';
 import 'package:operation_veritas/chat_page/question_time_progress.dart';
-import 'package:operation_veritas/change_notifier/message_visibility.dart';
+import 'package:operation_veritas/change_notifier/banner_message_visibility.dart';
 import 'package:operation_veritas/change_notifier/trivia_service.dart';
 import 'package:provider/provider.dart';
 
@@ -60,7 +60,7 @@ class _TriviaChatState extends State<TriviaChat> {
                     curve: Curves.linearToEaseOut,
                     clipBehavior: Clip.none,
                     child: Visibility(
-                      visible: visibility.isVisible() &&
+                      visible: !visibility.isQuestionVisibleOnScreen() &&
                           triviaService.getActiveQuestion != null,
                       maintainSize: false,
                       maintainAnimation: false,
@@ -128,7 +128,7 @@ class _TriviaChatState extends State<TriviaChat> {
                 },
               ),
             ),
-            MessageInput(
+             MessageInput(
               controller: _controller,
               onSend: () {
                 if (_controller.text.isNotEmpty) {
@@ -137,7 +137,9 @@ class _TriviaChatState extends State<TriviaChat> {
                   _sendMessage();
                 }
               },
-            ),
+          
+             ),
+            
           ],
         ),
       ),
