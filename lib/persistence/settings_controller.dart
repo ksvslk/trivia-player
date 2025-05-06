@@ -4,7 +4,7 @@
 
 import 'package:flutter/widgets.dart';
 import 'package:operation_veritas/constants.dart';
-import 'persistence/settings_persistence.dart';
+import 'settings_persistence.dart';
 
 /// An class that holds settings like [playerName] or [musicOn],
 /// and saves them to an injected persistence store.
@@ -16,6 +16,8 @@ class SettingsController {
 
   ValueNotifier<bool> soundsOn = ValueNotifier(false);
   ValueNotifier<int> seedColor = ValueNotifier(C.defaultThemeColor.toARGB32());
+  ValueNotifier<bool> isBlockedExpanded = ValueNotifier(false);
+  ValueNotifier<bool> isColorsExpanded = ValueNotifier(false);
 
   /// Creates a new instance of [SettingsController] backed by [persistence].
   SettingsController({required SettingsPersistence persistence})
@@ -26,11 +28,24 @@ class SettingsController {
     await Future.wait([
       _persistence.getSoundsOn().then((value) => soundsOn.value = value),
       _persistence.getSeedColor().then((value) => seedColor.value = value),
+      _persistence
+          .getBlockedExpanded()
+          .then((value) => isBlockedExpanded.value = value),
+      _persistence
+          .getColorsExpanded()
+          .then((value) => isColorsExpanded.value = value),
     ]);
   }
 
-  void changeSeedColor(Color color)
-  {
+  Future<void> saveBlockedExpanded(bool expanded) async {
+    await _persistence.saveBlockedExpanded(expanded);
+  }
+
+  Future<void> saveColorsExpanded(bool expanded) async {
+    await _persistence.saveColorsExpanded(expanded);
+  }
+
+  void changeSeedColor(Color color) {
     seedColor.value = color.toARGB32();
     _persistence.saveSeedColor(seedColor.value);
   }
@@ -51,13 +66,12 @@ class SettingsController {
   Future<Map<String, String>> getBanned() async {
     return await _persistence.getBanned();
   }
-  
+
   Future<Map<String, String>> setBan(String id, String name) async {
-   return await _persistence.setBan(id, name);
+    return await _persistence.setBan(id, name);
   }
 
   Future<Map<String, String>> removeBan(String id) async {
     return await _persistence.removeBan(id);
   }
-
 }

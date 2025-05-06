@@ -11,7 +11,7 @@ class CreditsDialog extends StatelessWidget {
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text('App developed by YourName'),
+          Text('Indest'),
           SizedBox(height: 8),
           Text('Version 1.0.0'),
         ],

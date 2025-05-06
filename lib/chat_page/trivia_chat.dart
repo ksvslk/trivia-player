@@ -91,7 +91,6 @@ class _TriviaChatState extends State<TriviaChat> {
                     activeQuestion.messageType != 'question') {
                   return const SizedBox.shrink();
                 }
-                debugPrint("New question: " + activeQuestion.text);
                 return QuestionTimeProgress(message: activeQuestion);
               },
             ),

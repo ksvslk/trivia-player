@@ -21,13 +21,6 @@ class MessageAvatar extends StatefulWidget {
 }
 
 class _MessageAvatarState extends State<MessageAvatar> {
-  final FocusNode _buttonFocusNode = FocusNode(debugLabel: 'Menu Button');
-
-  @override
-  void dispose() {
-    _buttonFocusNode.dispose();
-    super.dispose();
-  }
 
   String _getAvatarText() {
     if (widget.message.name.isNotEmpty) {
@@ -40,9 +33,8 @@ class _MessageAvatarState extends State<MessageAvatar> {
   @override
   Widget build(BuildContext context) {
     final blockedPlayers = context.read<BlockedPlayers>();
-
+    
     return MenuAnchor(
-      childFocusNode: _buttonFocusNode,
       style: MenuStyle(
           visualDensity: VisualDensity.compact,
           elevation: WidgetStatePropertyAll(5.0)),
@@ -72,7 +64,6 @@ class _MessageAvatarState extends State<MessageAvatar> {
       builder: (_, MenuController controller, Widget? child) {
         return InkWell(
           borderRadius: BorderRadius.circular(15),
-          focusNode: _buttonFocusNode,
           onTap: widget.message.isBot || widget.isCurrentUser
               ? null
               : () {

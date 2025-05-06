@@ -7,17 +7,15 @@ import 'package:flutter/services.dart';
 
 import 'package:logging/logging.dart';
 import 'package:operation_veritas/change_notifier/blocked_players.dart';
-import 'package:operation_veritas/chat_page/trivia_chat.dart';
 import 'package:operation_veritas/change_notifier/banner_message_visibility.dart';
 import 'package:operation_veritas/change_notifier/trivia_service.dart';
 import 'package:operation_veritas/home_screen.dart';
-import 'package:operation_veritas/settings/blocked_players_dialog.dart';
 import 'package:provider/provider.dart';
 import 'dart:developer' as dev;
-import 'settings/persistence/settings_persistence.dart';
-import 'settings/persistence/local_storage_settings_persistence.dart';
+import 'persistence/settings_persistence.dart';
+import 'persistence/local_storage_settings_persistence.dart';
 import 'app_lifecycle/app_lifecycle.dart';
-import 'settings/settings_controller.dart';
+import 'persistence/settings_controller.dart';
 import 'audio/audio_controller.dart';
 import 'package:firebase_core/firebase_core.dart';
 

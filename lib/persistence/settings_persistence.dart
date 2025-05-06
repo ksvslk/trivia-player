@@ -8,11 +8,15 @@
 /// local preferences to cloud-based solutions.
 abstract class SettingsPersistence {
 
+  Future<bool> getBlockedExpanded();
+  Future<bool> getColorsExpanded();
   Future<bool> getSoundsOn();
   Future<int> getSeedColor();
   Future<String> getToken();
   Future<Map<String, String>> getBanned();
 
+  Future<void> saveBlockedExpanded(bool value);
+  Future<void> saveColorsExpanded(bool value);
   Future<void> saveSoundsOn(bool value);
   Future<void> saveSeedColor(int value);
   Future<void> setToken(String value);

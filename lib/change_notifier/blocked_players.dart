@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:operation_veritas/settings/settings_controller.dart';
+import 'package:operation_veritas/persistence/settings_controller.dart';
 
 class BlockedPlayers extends ChangeNotifier {
   BlockedPlayers();

@@ -5,7 +5,7 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/widgets.dart';
 import 'package:logging/logging.dart';
-import 'package:operation_veritas/settings/settings_controller.dart';
+import 'package:operation_veritas/persistence/settings_controller.dart';
 
 import 'sounds.dart';
 

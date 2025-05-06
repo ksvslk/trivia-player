@@ -79,4 +79,28 @@ class LocalStorageSettingsPersistence extends SettingsPersistence {
     await prefs.setString('bannedUsers', bannedMapStringUpdated);
     return bannedMapObject;
   }
+  
+  @override
+  Future<bool> getBlockedExpanded() async {
+    final prefs = await instanceFuture;
+    return prefs.getBool('blockedExpanded') ?? false;
+  }
+  
+  @override
+  Future<bool> getColorsExpanded() async {
+    final prefs = await instanceFuture;
+    return prefs.getBool('colorsExpanded') ?? false;
+  }
+  
+  @override
+  Future<void> saveBlockedExpanded(bool value) async {
+    final prefs = await instanceFuture;
+    await prefs.setBool('blockedExpanded', value);
+  }
+  
+  @override
+  Future<void> saveColorsExpanded(bool value) async {
+    final prefs = await instanceFuture;
+    await prefs.setBool('colorsExpanded', value);
+  }
 }

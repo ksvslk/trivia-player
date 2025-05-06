@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -14,41 +12,38 @@ class MessageInput extends StatefulWidget {
   });
 
   @override
-  State<MessageInput> createState() => _MessageInputState();
+  MessageInputState createState() => MessageInputState();
 }
 
-class _MessageInputState extends State<MessageInput> with WidgetsBindingObserver {
+class MessageInputState extends State<MessageInput> {
+  late FocusNode _focusNode;
 
-   @override
+  @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
-  }
+    _focusNode = FocusNode();
 
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  @override
-  void didChangeMetrics() {
-    final bottomInset = PlatformDispatcher.instance.views.first.viewInsets.bottom;
-    if (bottomInset <= 0) FocusScope.of(context).nextFocus();
+    // Listen to focus changes
+    _focusNode.addListener(() {
+      if (!_focusNode.hasFocus) {
+        primaryFocus?.unfocus();
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
- 
     return Container(
       color: colorScheme.surface,
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
       child: Row(
         children: [
-          Expanded(child:
-             TextFormField(
+          Expanded(
+            child: TextField(
+              focusNode:
+                  _focusNode, // Use the focus node to listen for focus changes
               autofocus: false,
               maxLength: 100,
               maxLengthEnforcement: MaxLengthEnforcement.enforced,
@@ -66,7 +61,7 @@ class _MessageInputState extends State<MessageInput> with WidgetsBindingObserver
                   color: colorScheme.onSurfaceVariant,
                 ),
               ),
-              onFieldSubmitted: (_) => widget.onSend(),
+              onSubmitted: (_) => widget.onSend(),
             ),
           ),
           const SizedBox(width: 8),
@@ -75,11 +70,19 @@ class _MessageInputState extends State<MessageInput> with WidgetsBindingObserver
             focusElevation: 4.0,
             hoverElevation: 4.0,
             highlightElevation: 4.0,
-            onPressed: widget.onSend,
+            onPressed: () {
+              widget.onSend(); // Call the provided onSend callback
+            },
             child: const Icon(Icons.send),
           ),
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
   }
 }

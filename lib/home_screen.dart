@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:operation_veritas/change_notifier/banner_message_visibility.dart';
 import 'package:operation_veritas/chat_page/trivia_chat.dart';
-import 'package:operation_veritas/settings/menu_drawer.dart';
+import 'package:operation_veritas/menus/menu_drawer.dart';
 import 'package:provider/provider.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -28,10 +28,11 @@ class HomeScreen extends StatelessWidget {
         builder: (BuildContext scaffoldContext) {
           return Consumer<BannerMessageVisibility>(
             builder: (context, banner, child) {
-              print("isQuestionVisibleOnScreen: " + banner.isQuestionVisibleOnScreen().toString());
-              print("isRoundBreak: " + banner.isRoundBreak().toString());
               return Opacity(
-                  opacity: banner.isQuestionVisibleOnScreen() || banner.isRoundBreak() ? 1.0 : 0.0,
+                  opacity: banner.isQuestionVisibleOnScreen() ||
+                          banner.isRoundBreak()
+                      ? 1.0
+                      : 0.0,
                   child: FloatingActionButton(
                     elevation: 4.0,
                     focusElevation: 4.0,
@@ -47,7 +48,9 @@ class HomeScreen extends StatelessWidget {
           );
         },
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.miniEndTop,
+      drawerEnableOpenDragGesture: false,
+      endDrawerEnableOpenDragGesture: false,
+      floatingActionButtonLocation: FloatingActionButtonLocation.miniStartTop,
     );
   }
 }

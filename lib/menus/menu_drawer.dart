@@ -1,0 +1,288 @@
+import 'package:flutter/material.dart';
+import 'package:operation_veritas/menus/credits_dialog.dart';
+import 'package:operation_veritas/change_notifier/blocked_players.dart';
+import 'package:operation_veritas/persistence/settings_controller.dart';
+import 'package:provider/provider.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+
+// Re-using your existing enums
+enum ThemeSubMenuItem { red, yellow, green, blue, purple }
+
+class VersionDisplay extends StatefulWidget {
+  const VersionDisplay({super.key});
+
+  @override
+  State<VersionDisplay> createState() => _VersionDisplayState();
+}
+
+class _VersionDisplayState extends State<VersionDisplay> {
+  String _version = 'Loading...';
+
+  @override
+  void initState() {
+    super.initState();
+    _getVersionInfo();
+  }
+
+  Future<void> _getVersionInfo() async {
+    final packageInfo = await PackageInfo.fromPlatform();
+
+    if (mounted) {
+      setState(() {
+        _version =
+            'Version: ${packageInfo.version} (${packageInfo.buildNumber})';
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16.0),
+      child: Text(
+        _version,
+        style: TextStyle(
+          fontSize: 12,
+          color: Colors.grey[600],
+        ),
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
+}
+
+class MenuDrawer extends StatelessWidget {
+  final GlobalKey<NavigatorState> parentNavigatorKey;
+
+  const MenuDrawer({
+    super.key,
+    required this.parentNavigatorKey,
+  });
+
+  // Helper method to get color circle button
+  Widget _buildColorButton(
+      Color color, SettingsController settings, BuildContext context) {
+    bool isSelected = settings.seedColor.value == color.value;
+
+    return InkWell(
+      onTap: () {
+        settings.changeSeedColor(color);
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: 15,
+              backgroundColor: color,
+              child: isSelected
+                  ? Icon(Icons.check,
+                      color: color.computeLuminance() > 0.5
+                          ? Colors.black
+                          : Colors.white,
+                      size: 16)
+                  : null,
+            ),
+            const SizedBox(width: 16),
+            Text(
+              _getColorName(color),
+              style: const TextStyle(fontSize: 14),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Helper to get color name
+  String _getColorName(Color color) {
+    if (color.value == const Color.fromARGB(255, 255, 67, 104).value)
+      return 'Red';
+    if (color.value == const Color.fromARGB(255, 242, 209, 76).value)
+      return 'Yellow';
+    if (color.value == const Color.fromARGB(255, 193, 226, 59).value)
+      return 'Green';
+    if (color.value == const Color.fromARGB(255, 0, 136, 255).value)
+      return 'Blue';
+    if (color.value == const Color.fromARGB(255, 255, 87, 216).value)
+      return 'Purple';
+    return 'Custom';
+  }
+
+  // Helper to build blocked player list
+  Widget _buildBlockedPlayersSection(BuildContext context) {
+    return Consumer<BlockedPlayers>(
+      builder: (context, blockedPlayers, child) {
+        if (blockedPlayers.blockedPlayers.isEmpty) {
+          return const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Text(
+              'No players are currently blocked.',
+              style: TextStyle(
+                fontStyle: FontStyle.italic,
+                color: Colors.grey,
+              ),
+            ),
+          );
+        }
+
+        return ListView.builder(
+          shrinkWrap: true,
+          physics:
+              const NeverScrollableScrollPhysics(), // Important to prevent nested scrolling issues
+          itemCount: blockedPlayers.blockedPlayers.length,
+          itemBuilder: (context, index) {
+            String uid = blockedPlayers.blockedPlayers.keys.elementAt(index);
+            String name = blockedPlayers.blockedPlayers[uid] ?? "Player";
+
+            return ListTile(
+              dense: true,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16.0),
+              title: Text(
+                name,
+                style: const TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 14,
+                ),
+              ),
+              trailing: IconButton(
+                visualDensity: VisualDensity.compact,
+                icon: const Icon(Icons.remove_circle_outline, size: 18),
+                onPressed: () {
+                  blockedPlayers.remove(uid);
+                },
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final settings = Provider.of<SettingsController>(context, listen: false);
+
+    return Drawer(
+      child: SafeArea(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            // Drawer header
+            Container(
+              padding: const EdgeInsets.all(16.0),
+              color: Theme.of(context).primaryColor.withOpacity(0.1),
+              child: const Text(
+                'Menu',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+
+            ValueListenableBuilder<bool>(
+              valueListenable: settings.isBlockedExpanded,
+              builder: (context, isExpanded, child) {
+                return ExpansionTile(
+                  initiallyExpanded: isExpanded,
+                  onExpansionChanged: (bool expanded) {
+                    settings.isBlockedExpanded.value = expanded;
+                    settings.saveBlockedExpanded(expanded);
+                  },
+                  leading: const Icon(Icons.block),
+                  title: const Text('Blocked Players'),
+                  children: [
+                    _buildBlockedPlayersSection(context),
+                  ],
+                );
+              },
+            ),
+
+            // Sound toggle
+
+            ValueListenableBuilder<bool>(
+              valueListenable: settings.isColorsExpanded,
+              builder: (context, isExpanded, child) {
+                return ExpansionTile(
+                  initiallyExpanded: isExpanded,
+                  onExpansionChanged: (bool expanded) {
+                    settings.isColorsExpanded.value = expanded;
+                    settings.saveColorsExpanded(expanded);
+                  },
+                  maintainState: true,
+                  leading: const Icon(Icons.color_lens),
+                  title: const Text('Theme'),
+                  children: [
+                    ValueListenableBuilder(
+                      valueListenable: settings.seedColor,
+                      builder: (context, value, child) {
+                        return Column(
+                          children: [
+                            _buildColorButton(
+                                const Color.fromARGB(255, 255, 67, 104),
+                                settings,
+                                context),
+                            _buildColorButton(
+                                const Color.fromARGB(255, 242, 209, 76),
+                                settings,
+                                context),
+                            _buildColorButton(
+                                const Color.fromARGB(255, 193, 226, 59),
+                                settings,
+                                context),
+                            _buildColorButton(
+                                const Color.fromARGB(255, 0, 136, 255),
+                                settings,
+                                context),
+                            _buildColorButton(
+                                const Color.fromARGB(255, 255, 87, 216),
+                                settings,
+                                context),
+                          ],
+                        );
+                      },
+                    ),
+                  ],
+                );
+              },
+            ),
+
+            ValueListenableBuilder<bool>(
+              valueListenable: settings.soundsOn,
+              builder: (context, soundsOn, child) {
+                return SwitchListTile(
+                  title: const Text('Sound'),
+                  value: soundsOn,
+                  onChanged: (bool value) {
+                    settings.toggleSoundsOn();
+                  },
+                  secondary: const Icon(Icons.volume_up),
+                );
+              },
+            ),
+
+            /*
+            ListTile(
+              leading: const Icon(Icons.info),
+              title: const Text('Credits'),
+              onTap: () {
+                Navigator.pop(context);
+                showDialog(
+                  context: parentNavigatorKey.currentContext!,
+                  builder: (_) => const CreditsDialog(),
+                );
+              },
+            ),
+            */
+
+            // Version display at the bottom
+            const Divider(),
+            const VersionDisplay(),
+          ],
+        ),
+      ),
+    );
+  }
+}
