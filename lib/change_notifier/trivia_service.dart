@@ -2,13 +2,17 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:operation_veritas/ads/ads_controller.dart';
 import 'package:operation_veritas/chat_page/message.dart';
 
 class TriviaService extends ChangeNotifier {
-  final DatabaseReference _messagesRef = FirebaseDatabase.instance.ref().child('trivia_messages');
-  final DatabaseReference _playerCountRef = FirebaseDatabase.instance.ref('player_count');
+  final AdsController? adsController;
+  final DatabaseReference _messagesRef =
+      FirebaseDatabase.instance.ref().child('trivia_messages');
+  final DatabaseReference _playerCountRef =
+      FirebaseDatabase.instance.ref('player_count');
   final List<Message> _messages = [];
-  
+
   int _playerCount = 0;
   bool _connected = false;
   bool _isLoading = true;
@@ -16,7 +20,6 @@ class TriviaService extends ChangeNotifier {
   String _userName = '';
   Message? _activeQuestion;
   Message? _lastMessage;
-
 
   List<Message> get messages => List.unmodifiable(_messages);
   int get playerCount => _playerCount;
@@ -26,8 +29,7 @@ class TriviaService extends ChangeNotifier {
   Message? get getActiveQuestion => _activeQuestion;
   Message? get getLastMessage => _lastMessage;
 
-
-  TriviaService() {
+  TriviaService({this.adsController}) {
     _initialize();
   }
 
@@ -46,19 +48,16 @@ class TriviaService extends ChangeNotifier {
       _connected = event.snapshot.value as bool? ?? false;
       notifyListeners();
     });
-    
+
     // Player count listener
     _playerCountRef.onValue.listen((event) {
       _playerCount = event.snapshot.value as int? ?? 0;
       notifyListeners();
     });
-    
+
     // Messages listener with limit for initial load
-    _messagesRef
-        .limitToLast(50)
-        .onChildAdded
-        .listen(_handleNewMessage);
-        
+    _messagesRef.limitToLast(50).onChildAdded.listen(_handleNewMessage);
+
     // Mark loading as complete after a short delay to ensure initial messages are loaded
     Future.delayed(const Duration(milliseconds: 500), () {
       _isLoading = false;
@@ -68,7 +67,7 @@ class TriviaService extends ChangeNotifier {
 
   void _handleNewMessage(DatabaseEvent event) {
     if (event.snapshot.value == null) return;
-    
+
     try {
       final message = Map<String, dynamic>.from(event.snapshot.value as Map);
       final newMessage = Message(
@@ -87,7 +86,11 @@ class TriviaService extends ChangeNotifier {
       );
       if (newMessage.messageType == "question") {
         _activeQuestion = newMessage;
-      } else if (newMessage.messageType == "round_end" || newMessage.messageType == "round_end_with_category_selection") {
+      } else if (newMessage.messageType == "round_end" ||
+          newMessage.messageType == "round_end_with_category_selection") {
+        Future.delayed(Duration(seconds: 3)).then((_) {
+          adsController?.showInterstitialAd();
+        });
         _activeQuestion = null;
       }
       _lastMessage = newMessage;
@@ -100,7 +103,7 @@ class TriviaService extends ChangeNotifier {
 
   Future<void> sendMessage(String text) async {
     if (text.isEmpty) return;
-    
+
     try {
       await _messagesRef.push().set({
         'id': _currentUserId,

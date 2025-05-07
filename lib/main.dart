@@ -1,11 +1,15 @@
+import 'dart:io';
 import 'dart:math';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import 'package:logging/logging.dart';
+import 'package:operation_veritas/ads/ads_controller.dart';
 import 'package:operation_veritas/change_notifier/blocked_players.dart';
 import 'package:operation_veritas/change_notifier/banner_message_visibility.dart';
 import 'package:operation_veritas/change_notifier/trivia_service.dart';
@@ -64,8 +68,20 @@ Future<void> main() async {
   _log.info('Going full screen');
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
 
+  AdsController? adsController;
+  if (!kIsWeb && (Platform.isIOS || Platform.isAndroid)) {
+    /// Prepare the google_mobile_ads plugin so that the first ad loads
+    /// faster. This can be done later or with a delay if startup
+    /// experience suffers.
+    adsController = AdsController(MobileAds.instance);
+    adsController.requestTheLatestConsentInformation();
+  }
+
   runApp(
-    MyApp(settingsPersistence: LocalStorageSettingsPersistence()),
+    MyApp(
+      settingsPersistence: LocalStorageSettingsPersistence(),
+      adsController: adsController,
+    ),
   );
 }
 
@@ -80,10 +96,12 @@ Logger _log = Logger('main.dart');
 
 class MyApp extends StatelessWidget {
   final SettingsPersistence settingsPersistence;
+  final AdsController? adsController;
 
   const MyApp({
     super.key,
     required this.settingsPersistence,
+    required this.adsController,
   });
 
   @override
@@ -109,8 +127,9 @@ class MyApp extends StatelessWidget {
             },
             dispose: (context, audio) => audio.dispose(),
           ),
+          ChangeNotifierProvider<AdsController?>.value(value: adsController),
           ChangeNotifierProvider(
-            create: (context) => TriviaService(),
+            create: (context) => TriviaService(adsController: adsController),
           ),
           ChangeNotifierProvider(
             create: (context) => BannerMessageVisibility(),
@@ -182,8 +201,7 @@ class MyApp extends StatelessWidget {
                 },
                 home: HomeScreen(
                   userColor: _generateRandomDarkerColor(),
-                  navigatorKey:
-                      navigatorKey,
+                  navigatorKey: navigatorKey,
                 ),
               );
             },
@@ -193,8 +211,7 @@ class MyApp extends StatelessWidget {
     );
   }
 
-
-Color _generateRandomDarkerColor() {
+  Color _generateRandomDarkerColor() {
     Random random = Random();
     // Generate random RGB values and adjust to ensure it's dark
     int r =
