@@ -54,12 +54,7 @@ class _TriviaChatState extends State<TriviaChat> {
             Consumer2<TriviaService, BannerMessageVisibility>(
               builder: (context, triviaService, visibility, child) {
                 final colorScheme = Theme.of(context).colorScheme;
-                return AnimatedSize(
-                    duration: Durations.medium1,
-                    reverseDuration: Durations.short1,
-                    curve: Curves.linearToEaseOut,
-                    clipBehavior: Clip.none,
-                    child: Visibility(
+                return Visibility(
                       visible: !visibility.isQuestionVisibleOnScreen() &&
                           triviaService.getActiveQuestion != null,
                       maintainSize: false,
@@ -81,7 +76,7 @@ class _TriviaChatState extends State<TriviaChat> {
                           ),
                         ),
                       ),
-                    ));
+                    );
               },
             ),
             Consumer<TriviaService>(
