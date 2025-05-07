@@ -10,7 +10,6 @@ class BannerMessageVisibility extends ChangeNotifier {
 
   setQuestionVisibilityOnScreen(bool isVisible) {
     _questionVisibilityOnScreen = isVisible;
-    _roundBreak = false;
     notifyListeners();
   }
 

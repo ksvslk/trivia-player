@@ -62,16 +62,13 @@ class MessageListView extends StatelessWidget {
                 formatTimestamp: formatTimestamp,
               ),
             );
-          } else {
-            // No direct state change during build!
-            // Instead, use a post-frame callback if needed
-            if (activeQuestion == null) {
-              // Schedule the state change for after this frame completes
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                context.read<BannerMessageVisibility>().setIsRoundBreak(true);
-              });
-            }
           }
+
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            context
+                .read<BannerMessageVisibility>()
+                .setIsRoundBreak(activeQuestion == null);
+          });
 
           return MessageBubble(
             message: message,

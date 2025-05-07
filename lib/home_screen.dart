@@ -28,6 +28,8 @@ class HomeScreen extends StatelessWidget {
         builder: (BuildContext scaffoldContext) {
           return Consumer<BannerMessageVisibility>(
             builder: (context, banner, child) {
+              print("isQuestionVisibleOnScreen: ${banner.isQuestionVisibleOnScreen()}");
+              print("isRoundBreak: ${banner.isRoundBreak()}");
               return Opacity(
                   opacity: banner.isQuestionVisibleOnScreen() ||
                           banner.isRoundBreak()

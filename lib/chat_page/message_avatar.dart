@@ -78,7 +78,7 @@ class _MessageAvatarState extends State<MessageAvatar> {
             backgroundColor: widget.avatarColor,
             child: widget.message.isBot
                 ? ImageIcon(
-                    AssetImage("assets/images/white_icon.png"),
+                    AssetImage(widget.message.messageType == 'question' ? "assets/images/avatar_question.png" : "assets/images/avatar_regular.png"),
                     color: widget.avatarColor.contrastingTextColor,
                   )
                 : Text(
