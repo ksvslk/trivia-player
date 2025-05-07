@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:operation_veritas/change_notifier/money_controller.dart';
 import 'package:operation_veritas/menus/credits_dialog.dart';
 import 'package:operation_veritas/change_notifier/blocked_players.dart';
 import 'package:operation_veritas/persistence/settings_controller.dart';
@@ -37,7 +38,6 @@ class _VersionDisplayState extends State<VersionDisplay> {
 
   @override
   Widget build(BuildContext context) {
-
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16.0),
       child: Text(
@@ -180,6 +180,39 @@ class MenuDrawer extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
+            ),
+
+            Consumer<MoneyController>(
+              builder: (context, money, child) {
+                return ListTile(
+                  leading: Icon(
+                      money.isSubscribed() ? Icons.diamond : Icons.diamond),
+                  title: money.isSubscribed()
+                      ? Text('You own premium')
+                      : RichText(
+                          text: TextSpan(
+                            style: DefaultTextStyle.of(context).style,
+                            children: [
+                              const TextSpan(text: 'Premium ('),
+                              TextSpan(
+                                text: 'ads',
+                                style: TextStyle(
+                                    decoration: TextDecoration.lineThrough),
+                              ),
+                              TextSpan(
+                                text:
+                                    ') - ${money.subscriptionOption?.fullPricePhase?.price.formatted ?? ''}',
+                              ),
+                            ],
+                          ),
+                        ),
+                  onTap: money.isSubscribed()
+                      ? null
+                      : () {
+                          money.purchaseSubscription();
+                        },
+                );
+              },
             ),
 
             ValueListenableBuilder<bool>(

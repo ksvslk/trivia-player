@@ -3,10 +3,12 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:operation_veritas/ads/ads_controller.dart';
+import 'package:operation_veritas/change_notifier/money_controller.dart';
 import 'package:operation_veritas/chat_page/message.dart';
 
 class TriviaService extends ChangeNotifier {
   final AdsController? adsController;
+  final MoneyController? moneyController;
   final DatabaseReference _messagesRef =
       FirebaseDatabase.instance.ref().child('trivia_messages');
   final DatabaseReference _playerCountRef =
@@ -29,7 +31,7 @@ class TriviaService extends ChangeNotifier {
   Message? get getActiveQuestion => _activeQuestion;
   Message? get getLastMessage => _lastMessage;
 
-  TriviaService({this.adsController}) {
+  TriviaService({this.moneyController, this.adsController}) {
     _initialize();
   }
 
@@ -88,9 +90,11 @@ class TriviaService extends ChangeNotifier {
         _activeQuestion = newMessage;
       } else if (newMessage.messageType == "round_end" ||
           newMessage.messageType == "round_end_with_category_selection") {
-        Future.delayed(Duration(seconds: 3)).then((_) {
-          adsController?.showInterstitialAd();
-        });
+        if (moneyController?.isSubscribed() == false) {
+          Future.delayed(Duration(seconds: 3)).then((_) {
+            adsController?.showInterstitialAd();
+          });
+        }
         _activeQuestion = null;
       }
       _lastMessage = newMessage;

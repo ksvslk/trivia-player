@@ -12,9 +12,11 @@ import 'package:logging/logging.dart';
 import 'package:operation_veritas/ads/ads_controller.dart';
 import 'package:operation_veritas/change_notifier/blocked_players.dart';
 import 'package:operation_veritas/change_notifier/banner_message_visibility.dart';
+import 'package:operation_veritas/change_notifier/money_controller.dart';
 import 'package:operation_veritas/change_notifier/trivia_service.dart';
 import 'package:operation_veritas/home_screen.dart';
 import 'package:provider/provider.dart';
+import 'package:purchases_flutter/purchases_flutter.dart';
 import 'dart:developer' as dev;
 import 'persistence/settings_persistence.dart';
 import 'persistence/local_storage_settings_persistence.dart';
@@ -22,6 +24,8 @@ import 'app_lifecycle/app_lifecycle.dart';
 import 'persistence/settings_controller.dart';
 import 'audio/audio_controller.dart';
 import 'package:firebase_core/firebase_core.dart';
+
+const revenueCatGoogleApiKey = "goog_KHFjwrHpqZqQHQJeIbeSgiBqRQc";
 
 void setupConnectionTracking() {
   final connectedRef = FirebaseDatabase.instance.ref(".info/connected");
@@ -40,6 +44,17 @@ void setupConnectionTracking() {
       });
     }
   });
+}
+
+Future<void> initPlatformState() async {
+  await Purchases.setDebugLogsEnabled(true);
+  PurchasesConfiguration configuration;
+  if (Platform.isAndroid) {
+    configuration = PurchasesConfiguration("goog_KHFjwrHpqZqQHQJeIbeSgiBqRQc");
+  } else {
+    configuration = PurchasesConfiguration("");
+  }
+  await Purchases.configure(configuration);
 }
 
 Future<void> main() async {
@@ -63,6 +78,7 @@ Future<void> main() async {
 
   await Firebase.initializeApp();
   await FirebaseAuth.instance.signInAnonymously();
+  await initPlatformState();
   setupConnectionTracking();
 
   _log.info('Going full screen');
@@ -81,6 +97,7 @@ Future<void> main() async {
     MyApp(
       settingsPersistence: LocalStorageSettingsPersistence(),
       adsController: adsController,
+      moneyController: MoneyController(),
     ),
   );
 }
@@ -97,11 +114,13 @@ Logger _log = Logger('main.dart');
 class MyApp extends StatelessWidget {
   final SettingsPersistence settingsPersistence;
   final AdsController? adsController;
+  final MoneyController moneyController;
 
   const MyApp({
     super.key,
     required this.settingsPersistence,
     required this.adsController,
+    required this.moneyController,
   });
 
   @override
@@ -129,7 +148,11 @@ class MyApp extends StatelessWidget {
           ),
           ChangeNotifierProvider<AdsController?>.value(value: adsController),
           ChangeNotifierProvider(
-            create: (context) => TriviaService(adsController: adsController),
+            create: (context) => moneyController,
+          ),
+          ChangeNotifierProvider(
+            create: (context) => TriviaService(
+                adsController: adsController, moneyController: moneyController),
           ),
           ChangeNotifierProvider(
             create: (context) => BannerMessageVisibility(),
