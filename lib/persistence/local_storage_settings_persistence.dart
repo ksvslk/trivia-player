@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
+import 'dart:ffi';
 
+import 'package:ntp/ntp.dart';
 import 'package:operation_veritas/constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'settings_persistence.dart';
@@ -54,7 +56,8 @@ class LocalStorageSettingsPersistence extends SettingsPersistence {
   Future<Map<String, String>> getBanned() async {
     final prefs = await instanceFuture;
     final bannedMapString = prefs.getString('bannedUsers');
-    final bannedMapObject = Map<String, String>.from(jsonDecode(bannedMapString ?? "{}"));
+    final bannedMapObject =
+        Map<String, String>.from(jsonDecode(bannedMapString ?? "{}"));
     return bannedMapObject;
   }
 
@@ -62,7 +65,8 @@ class LocalStorageSettingsPersistence extends SettingsPersistence {
   Future<Map<String, String>> setBan(String id, String name) async {
     final prefs = await instanceFuture;
     final bannedMapString = prefs.getString('bannedUsers');
-    final bannedMapObject = Map<String, String>.from(jsonDecode(bannedMapString ?? "{}"));
+    final bannedMapObject =
+        Map<String, String>.from(jsonDecode(bannedMapString ?? "{}"));
     bannedMapObject[id] = name;
     String bannedMapStringUpdated = jsonEncode(bannedMapObject);
     await prefs.setString('bannedUsers', bannedMapStringUpdated);
@@ -71,36 +75,68 @@ class LocalStorageSettingsPersistence extends SettingsPersistence {
 
   @override
   Future<Map<String, String>> removeBan(String id) async {
-   final prefs = await instanceFuture;
+    final prefs = await instanceFuture;
     final bannedMapString = prefs.getString('bannedUsers');
-    final bannedMapObject = Map<String, String>.from(jsonDecode(bannedMapString ?? "{}"));
+    final bannedMapObject =
+        Map<String, String>.from(jsonDecode(bannedMapString ?? "{}"));
     bannedMapObject.remove(id);
     String bannedMapStringUpdated = jsonEncode(bannedMapObject);
     await prefs.setString('bannedUsers', bannedMapStringUpdated);
     return bannedMapObject;
   }
-  
+
   @override
   Future<bool> getBlockedExpanded() async {
     final prefs = await instanceFuture;
     return prefs.getBool('blockedExpanded') ?? false;
   }
-  
+
   @override
   Future<bool> getColorsExpanded() async {
     final prefs = await instanceFuture;
     return prefs.getBool('colorsExpanded') ?? false;
   }
-  
+
   @override
   Future<void> saveBlockedExpanded(bool value) async {
     final prefs = await instanceFuture;
     await prefs.setBool('blockedExpanded', value);
   }
-  
+
   @override
   Future<void> saveColorsExpanded(bool value) async {
     final prefs = await instanceFuture;
     await prefs.setBool('colorsExpanded', value);
   }
+
+  @override
+  Future<void> saveElapsedSeconds(int seconds) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('elapsedSeconds', seconds);
+  }
+
+  @override
+  Future<int> getElapsedSeconds() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt('elapsedSeconds') ?? 0;
+  }
+
+  @override
+  Future<int> getLockTimeStart() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt('lockTimeStart') ?? 0;
+  }
+
+  @override
+  Future<void> saveLockTimeStart() async {
+    final lockTimeStart = DateTime.now()
+        .add(Duration(
+            milliseconds:
+                await NTP.getNtpOffset(lookUpAddress: 'time.google.com')))
+        .toUtc()
+        .millisecondsSinceEpoch;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('lockTimeStart', lockTimeStart);
+  }
+  
 }

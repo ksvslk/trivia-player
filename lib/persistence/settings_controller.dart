@@ -2,13 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
+import 'package:logging/logging.dart';
 import 'package:operation_veritas/constants.dart';
 import 'settings_persistence.dart';
 
 /// An class that holds settings like [playerName] or [musicOn],
 /// and saves them to an injected persistence store.
-class SettingsController {
+class SettingsController with WidgetsBindingObserver {
+  final Logger _log = Logger('SettingsController');
+
   final SettingsPersistence _persistence;
 
   /// Whether or not the sound is on at all. This overrides both music
@@ -19,9 +24,22 @@ class SettingsController {
   ValueNotifier<bool> isBlockedExpanded = ValueNotifier(false);
   ValueNotifier<bool> isColorsExpanded = ValueNotifier(false);
 
+  ValueNotifier<int> lockTimeSecondsLeft = ValueNotifier(0);
+  ValueNotifier<int> playTimeElapsed = ValueNotifier(0);
+  ValueNotifier<bool> isPlayTimeReached = ValueNotifier(false);
+
+  Timer? _lockTimeCountdownTimer;
+  Timer? _elapsedPlayTimer;
+
+  final int _totalPlayTimeInSeconds = 60;
+  final int _totalLockTimeInSeconds = 120;
+
   /// Creates a new instance of [SettingsController] backed by [persistence].
-  SettingsController({required SettingsPersistence persistence})
-      : _persistence = persistence;
+  SettingsController({
+    required SettingsPersistence persistence,
+  }) : _persistence = persistence {
+    WidgetsBinding.instance.addObserver(this);
+  }
 
   /// Asynchronously loads values from the injected persistence store.
   Future<void> loadStateFromPersistence() async {
@@ -35,14 +53,24 @@ class SettingsController {
           .getColorsExpanded()
           .then((value) => isColorsExpanded.value = value),
     ]);
+    _log.info("loadStateFromPersistence");
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+
+    } else if (state == AppLifecycleState.paused) {
+
+    }
   }
 
   Future<void> saveBlockedExpanded(bool expanded) async {
-    await _persistence.saveBlockedExpanded(expanded);
+    _persistence.saveBlockedExpanded(expanded);
   }
 
   Future<void> saveColorsExpanded(bool expanded) async {
-    await _persistence.saveColorsExpanded(expanded);
+    _persistence.saveColorsExpanded(expanded);
   }
 
   void changeSeedColor(Color color) {
@@ -56,7 +84,7 @@ class SettingsController {
   }
 
   Future<void> setToken(String token) async {
-    await _persistence.setToken(token);
+    _persistence.setToken(token);
   }
 
   Future<String> getToken() async {
@@ -73,5 +101,13 @@ class SettingsController {
 
   Future<Map<String, String>> removeBan(String id) async {
     return await _persistence.removeBan(id);
+  }
+
+  Future<int> getLockTimeStart() async {
+    return await _persistence.getLockTimeStart();
+  }
+
+  Future<void> saveLockTimeStart() async {
+    _persistence.saveLockTimeStart();
   }
 }

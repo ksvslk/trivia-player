@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:operation_veritas/change_notifier/banner_message_visibility.dart';
 import 'package:operation_veritas/chat_page/trivia_chat.dart';
 import 'package:operation_veritas/menus/menu_drawer.dart';
+import 'package:operation_veritas/persistence/settings_controller.dart';
 import 'package:provider/provider.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -18,6 +19,7 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       drawer: MenuDrawer(parentNavigatorKey: navigatorKey),
       body: TriviaChat(
@@ -34,16 +36,16 @@ class HomeScreen extends StatelessWidget {
                       ? 1.0
                       : 0.0,
                   child: FloatingActionButton(
-                    elevation: 4.0,
-                    focusElevation: 4.0,
-                    hoverElevation: 4.0,
-                    highlightElevation: 4.0,
-                    mini: true,
-                    onPressed: () {
-                      Scaffold.of(context).openDrawer();
-                    },
-                    child: Icon(Icons.settings),
-                  ));
+                      elevation: 4.0,
+                      focusElevation: 4.0,
+                      hoverElevation: 4.0,
+                      highlightElevation: 4.0,
+                      mini: true,
+                      onPressed: () {
+                        Scaffold.of(context).openDrawer();
+                      },
+                      child: Icon(Icons.settings),
+                      ));
             },
           );
         },

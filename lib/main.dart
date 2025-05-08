@@ -82,7 +82,7 @@ Future<void> main() async {
   setupConnectionTracking();
 
   _log.info('Going full screen');
-  SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 
   AdsController? adsController;
   if (!kIsWeb && (Platform.isIOS || Platform.isAndroid)) {
@@ -175,8 +175,6 @@ class MyApp extends StatelessWidget {
                 DeviceOrientation.portraitUp,
                 DeviceOrientation.portraitDown,
               ]);
-              SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
-                  overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom]);
 
               final lightTheme = ThemeData(
                 scaffoldBackgroundColor: Colors.white,
@@ -207,21 +205,6 @@ class MyApp extends StatelessWidget {
                 theme: lightTheme,
                 darkTheme: darkTheme,
                 navigatorKey: navigatorKey, // Add navigator key here
-                builder: (BuildContext context, Widget? child) {
-                  final ThemeData resolvedTheme = Theme.of(context);
-                  final bool isDarkMode =
-                      resolvedTheme.brightness == Brightness.dark;
-
-                  SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-                    systemNavigationBarColor: resolvedTheme.colorScheme.surface,
-                    systemNavigationBarDividerColor:
-                        resolvedTheme.colorScheme.surface,
-                    systemNavigationBarIconBrightness:
-                        isDarkMode ? Brightness.light : Brightness.dark,
-                  ));
-
-                  return child!;
-                },
                 home: HomeScreen(
                   userColor: _generateRandomDarkerColor(),
                   navigatorKey: navigatorKey,

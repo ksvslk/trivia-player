@@ -129,7 +129,7 @@ class AdsController extends ChangeNotifier {
         loadInterstitialAd(null);
       },
     );
-    //if (Platform.isAndroid) _interstitialAd!.setImmersiveMode(true);
+    if (Platform.isAndroid) _interstitialAd!.setImmersiveMode(true);
     _interstitialAd!.show();
   }
 
