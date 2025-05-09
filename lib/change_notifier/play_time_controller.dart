@@ -20,16 +20,14 @@ import 'package:operation_veritas/persistence/settings_controller.dart';
   All these operations must be made in a transactional manner.
   
 */
-
-// Refactor this class AI!
+// Any improvements we can make to this class AI?
 class PlayTimeController {
-
   final SettingsController _settingsController;
   late Timer _timer;
 
   final _lockTimeEndController = StreamController<int>.broadcast();
   Stream<int> get onLockTimeUpdate => _lockTimeEndController.stream;
-  
+
   final _playTimeEndedController = StreamController<void>.broadcast();
   Stream<void> get onPlayTimeEnded => _playTimeEndedController.stream;
 
@@ -52,32 +50,24 @@ class PlayTimeController {
   void handleTick(Timer timer) async {
     final nowRef = DateTime.now().toUtc().millisecondsSinceEpoch;
 
-    if (lockTimeEnd > -1) {
-      if (nowRef >= lockTimeEnd) {
-        _settingsController.saveLockTimeEnd(disable: true);
-        _settingsController.savePlayTimeEnd();
-        playTimeEnd = await _settingsController.getPlayTimeEnd();
-        lockTimeEnd = await _settingsController.getLockTimeEnd();
-        assert(lockTimeEnd == -1 && playTimeEnd >= 0);
-        _lockTimeEndController.add(0);
-      } else {
-        final lockTimeLeftInSeconds = Duration(milliseconds: lockTimeEnd - nowRef).inSeconds;
-        _lockTimeEndController.add(lockTimeLeftInSeconds);
-      }
-    } else {
-      if (nowRef >= playTimeEnd) {
-        _settingsController.savePlayTimeEnd(disable: true);
-        _settingsController.saveLockTimeEnd();
-        playTimeEnd = await _settingsController.getPlayTimeEnd();
-        lockTimeEnd = await _settingsController.getLockTimeEnd();
-        assert(playTimeEnd == -1 && lockTimeEnd >= 0);
-        _playTimeEndedController.add(null);
-      }
+    assert(lockTimeEnd == -1 && playTimeEnd == -1);
+
+    if (lockTimeEnd > -1 && nowRef >= lockTimeEnd) {
+      // Lock time has elapsed
+      await _settingsController.saveLockTimeEnd(disable: true);
+      playTimeEnd = await _settingsController.getPlayTimeEnd();
+      lockTimeEnd = await _settingsController.getLockTimeEnd();
+      _lockTimeEndController.add(0);
+    } else if (playTimeEnd > -1 && nowRef >= playTimeEnd) {
+      // Play time has elapsed
+      await _settingsController.savePlayTimeEnd(disable: true);
+      lockTimeEnd = await _settingsController.getLockTimeEnd();
+      playTimeEnd = await _settingsController.getPlayTimeEnd();
+      _playTimeEndedController.add(null);
     }
   }
-  
+
   dispose() {
     _timer.cancel();
   }
-
 }
