@@ -50,7 +50,7 @@ class PlayTimeController {
   void handleTick(Timer timer) async {
     final nowRef = DateTime.now().toUtc().millisecondsSinceEpoch;
 
-    assert(lockTimeEnd == -1 && playTimeEnd == -1);
+    assert(!(lockTimeEnd == -1 && playTimeEnd == -1));
 
     if (lockTimeEnd > -1 && nowRef >= lockTimeEnd) {
       // Lock time has elapsed
