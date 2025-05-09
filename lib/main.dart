@@ -123,8 +123,6 @@ class MyApp extends StatelessWidget {
     required this.adsController,
     required this.moneyController,
   });
-
- // I need PlayTimeController to be provided but I don't know how to add also SettingsController to its constructor here AI?
  
   @override
   Widget build(BuildContext context) {
@@ -167,6 +165,7 @@ class MyApp extends StatelessWidget {
               return blockedPlayers;
             },
           ),
+          // Provide also PlayTimeController - depends on SettingsController AI!
         ],
         builder: (context, child) {
           final settingsController = context.read<SettingsController>();
