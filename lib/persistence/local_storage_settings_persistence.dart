@@ -3,9 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:ffi';
 
-import 'package:ntp/ntp.dart';
 import 'package:operation_veritas/constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'settings_persistence.dart';
@@ -110,33 +108,43 @@ class LocalStorageSettingsPersistence extends SettingsPersistence {
   }
 
   @override
-  Future<void> saveElapsedSeconds(int seconds) async {
+  Future<int> getPlayTimeEnd() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('elapsedSeconds', seconds);
+    return prefs.getInt('playTimeEnd') ?? -1;
   }
 
   @override
-  Future<int> getElapsedSeconds() async {
+  Future<void> savePlayTimeEnd(bool disable) async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getInt('elapsedSeconds') ?? 0;
-  }
-
-  @override
-  Future<int> getLockTimeStart() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getInt('lockTimeStart') ?? 0;
-  }
-
-  @override
-  Future<void> saveLockTimeStart() async {
-    final lockTimeStart = DateTime.now()
-        .add(Duration(
-            milliseconds:
-                await NTP.getNtpOffset(lookUpAddress: 'time.google.com')))
+    if (disable) {
+      await prefs.setInt('playTimeEnd', -1);
+      return;
+    }
+    final playTimeEnd = DateTime.now()
+        .add(Duration(seconds: 15))
         .toUtc()
         .millisecondsSinceEpoch;
+    await prefs.setInt('playTimeEnd', playTimeEnd);
+  }
+
+  @override
+  Future<int> getLockTimeEnd() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('lockTimeStart', lockTimeStart);
+    return prefs.getInt('lockTimeEnd') ?? -1;
+  }
+
+  @override
+  Future<void> saveLockTimeEnd(bool disable) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (disable) {
+      await prefs.setInt('lockTimeEnd', -1);
+      return;
+    }
+    final lockTimeEnd = DateTime.now()
+        .add(Duration(seconds: 10))
+        .toUtc()
+        .millisecondsSinceEpoch;
+    await prefs.setInt('lockTimeEnd', lockTimeEnd);
   }
   
 }

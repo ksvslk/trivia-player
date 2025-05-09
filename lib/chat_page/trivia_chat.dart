@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
-import 'package:operation_veritas/ads/undismissable_popup.dart';
 import 'package:operation_veritas/chat_page/message_input.dart';
 import 'package:operation_veritas/chat_page/message_list_view.dart';
 import 'package:operation_veritas/chat_page/question_time_progress.dart';
 import 'package:operation_veritas/change_notifier/banner_message_visibility.dart';
 import 'package:operation_veritas/change_notifier/trivia_service.dart';
-import 'package:operation_veritas/persistence/settings_controller.dart';
 import 'package:provider/provider.dart';
 
 class TriviaChat extends StatefulWidget {
@@ -23,40 +21,17 @@ class _TriviaChatState extends State<TriviaChat> {
 
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  late VoidCallback _listener;
 
   @override
   void initState() {
     super.initState();
     context.read<TriviaService>().setUserName(widget.name);
-
-    final settingsController =
-        Provider.of<SettingsController>(context, listen: false);
-
-    _listener = () {
-      if (settingsController.isPlayTimeReached.value) {
-        _log.info(
-            "settingsController.isPlayTimeReached.value: ${settingsController.isPlayTimeReached.value}");
-
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (_) => const UndismissablePopup(),
-          );
-        });
-      }
-    };
-    settingsController.isPlayTimeReached.addListener(_listener);
   }
 
   @override
   void dispose() {
     _controller.dispose();
     _scrollController.dispose();
-    final settingsController =
-        Provider.of<SettingsController>(context, listen: false);
-    settingsController.isPlayTimeReached.removeListener(_listener);
     super.dispose();
   }
 
@@ -80,27 +55,11 @@ class _TriviaChatState extends State<TriviaChat> {
 
   @override
   Widget build(BuildContext context) {
-    final settingsController = context.read<SettingsController>();
 
     return SafeArea(
       child: Scaffold(
         body: Column(
           children: [
-            ValueListenableBuilder<int>(
-              valueListenable: settingsController.playTimeElapsed,
-              builder: (context, seconds, _) {
-                if (seconds == 0) {
-                  Navigator.of(context).pop();
-                }
-                final minutes = (seconds / 60).floor();
-                final secs = seconds % 60;
-                final formatted =
-                    '${minutes.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
-
-                return Text(formatted);
-              },
-            ),
-            //,
             Consumer2<TriviaService, BannerMessageVisibility>(
               builder: (context, triviaService, visibility, child) {
                 final colorScheme = Theme.of(context).colorScheme;

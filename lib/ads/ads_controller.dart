@@ -10,127 +10,113 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:logging/logging.dart';
 
 class AdsController extends ChangeNotifier {
-  /// Creates an [AdsController] that wraps around a [MobileAds] [instance].
-  ///
-  /// Example usage:
-  ///
-  ///     var controller = AdsController(MobileAds.instance);
+
   AdsController(MobileAds instance) : _instance = instance;
 
   static final _log = Logger('AdsController');
-
   final MobileAds _instance;
-  final int _maxRetryCount = 25; // Maximum number of retries
-  int _intersitialRetryCount = 0;
+  final Duration _initialDelay = const Duration(seconds: 1);
+  RewardedAd? _rewardedAd;
+
+  final int _maxRetryCount = 25;
+  int _rewardedRetryCount = 0;
   int _consentRetryCount = 0;
-  final Duration _initialDelay = const Duration(seconds: 1); // Initial delay
-  InterstitialAd? _interstitialAd;
+
+  bool isFakeAdsEnabled = true;
 
   /*
- // REAL ads
-  final intersitialAdUnitId = defaultTargetPlatform == TargetPlatform.android
-      ? 'ca-app-pub-5386053272091445/3233604743'
+  //REAL
+  final rewardedAdUnitId = defaultTargetPlatform == TargetPlatform.android
+      ? ('ca-app-pub-5386053272091445/6000789763')
       // iOS
-      : 'ca-app-pub-5386053272091445/5963709865';
+      : 'ca-app-pub-5386053272091445/4687708097';
+  */
 
-*/
-
-  //FAKE ads
-  final intersitialAdUnitId = defaultTargetPlatform == TargetPlatform.android
-      ? 'ca-app-pub-3940256099942544/1033173712'
+  //FAKE
+  final rewardedAdUnitId = defaultTargetPlatform == TargetPlatform.android
+      ? 'ca-app-pub-3940256099942544/5224354917'
       // iOS
-      : 'ca-app-pub-3940256099942544/4411468910';
+      : 'ca-app-pub-3940256099942544/1712485313';
 
   @override
   void dispose() {
     super.dispose();
-    _interstitialAd?.dispose();
+    _rewardedAd?.dispose();
   }
 
-  /// Initializes the injected [MobileAds.instance].
   Future<void> initialize() async {
     _log.info('initialize');
     await _instance.initialize();
     Future<void>.delayed(const Duration(seconds: 1)).then((_) {
-      return loadInterstitialAd(null);
+      return loadRewardedAd(null);
     });
   }
 
   bool isAdAvailable() {
-    return _interstitialAd != null;
+    return _rewardedAd != null;
   }
 
-  void loadInterstitialAd(AdRequest? adRequestNullable) {
+  void loadRewardedAd(AdRequest? adRequestNullable) {
     assert(Platform.isAndroid || Platform.isIOS,
         'AdMob currently does not support ${Platform.operatingSystem}');
-    _log.info('loadInterstitialAd');
+    _log.info('loadRewardedAd');
     final adRequest = adRequestNullable ?? const AdRequest();
-    InterstitialAd.load(
-      adUnitId: intersitialAdUnitId,
-      request: adRequest,
-      adLoadCallback: InterstitialAdLoadCallback(
-        onAdLoaded: (ad) {
-          _interstitialAd = ad;
-          _log.info('preloaded interstitial ad loaded.');
-          _intersitialRetryCount = 0; // Reset retry count on success
-        },
-        onAdFailedToLoad: ((error) async {
-          _log.info('preloaded interstitial ad not loaded - $error');
-          if (_intersitialRetryCount < _maxRetryCount) {
-            _intersitialRetryCount++;
-            final delay = _initialDelay * pow(2, _intersitialRetryCount - 1);
+    RewardedAd.load(
+        adUnitId: rewardedAdUnitId,
+        request: adRequest,
+        rewardedAdLoadCallback: RewardedAdLoadCallback(onAdLoaded: (ad) {
+          _rewardedAd = ad;
+          _log.info('preloaded rewarded ad loaded.');
+          _rewardedRetryCount = 0; // Reset retry count on success
+          notifyListeners();
+        }, onAdFailedToLoad: ((error) async {
+          _log.info('preloaded rewarded ad not loaded - $error');
+          if (_rewardedRetryCount < _maxRetryCount) {
+            _rewardedRetryCount++;
+            final delay = _initialDelay * pow(2, _rewardedRetryCount - 1);
             _log.info(
-                'Retrying interstitial ad load in ${delay.inSeconds} seconds...');
+                'Retrying rewarded ad load in ${delay.inSeconds} seconds...');
             await Future.delayed(delay);
-            loadInterstitialAd(adRequest);
+            loadRewardedAd(adRequest);
           } else {
-            _log.info('Max retries reached for interstitial. Not retrying.');
+            _log.info('Max retries reached for rewarded. Not retrying.');
           }
-        }),
-      ),
-    );
+        })));
   }
 
-  void reloadInterstitialAd() {
-    _interstitialAd?.dispose();
-    _interstitialAd = null;
-    loadInterstitialAd(null);
+  void reloadRewardedAd() {
+    _rewardedAd?.dispose();
+    _rewardedAd = null;
+    loadRewardedAd(null);
     notifyListeners();
   }
 
-  Future<void> showInterstitialAd() async {
-    if (_interstitialAd == null) {
-      _log.info('Warning, attempt to show interstitial before loaded.');
-      loadInterstitialAd(null);
+  Future<void> showRewardedAd(Function giveRewardCallback) async {
+    if (_rewardedAd == null) {
+      _log.info('Warning, attempt to show rewarded before loaded.');
       return;
     }
-    _interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
-      // Called when the ad showed the full screen content.
-      onAdShowedFullScreenContent: (ad) {
-        _log.info('$ad onAdShowedFullScreenContent.');
+    _rewardedAd!.fullScreenContentCallback = FullScreenContentCallback(
+      onAdShowedFullScreenContent: (RewardedAd ad) {
+        _log.info('ad onAdShowedFullScreenContent.');
       },
-      // Called when an impression occurs on the ad.
-      onAdImpression: (ad) {
-        _log.info('$ad onAdImpression.');
-      },
-      // Called when the ad failed to show full screen content.
-      onAdFailedToShowFullScreenContent: (ad, err) {
-        // Dispose the ad here to free resources.
-        _log.info('$ad onAdImpression.');
-        _interstitialAd?.dispose();
-        _interstitialAd = null;
-      },
-      // Called when the ad dismissed full screen content.
-      onAdDismissedFullScreenContent: (ad) {
-        // Dispose the ad here to free resources.
+      onAdDismissedFullScreenContent: (RewardedAd ad) {
         _log.info('$ad onAdDismissedFullScreenContent.');
-        _interstitialAd?.dispose();
-        _interstitialAd = null;
-        loadInterstitialAd(null);
+        giveRewardCallback.call();
+        reloadRewardedAd();
+      },
+      onAdFailedToShowFullScreenContent: (RewardedAd ad, AdError error) {
+        _log.info('$ad onAdFailedToShowFullScreenContent: $error');
+        reloadRewardedAd();
       },
     );
-    if (Platform.isAndroid) _interstitialAd!.setImmersiveMode(true);
-    _interstitialAd!.show();
+
+    if (Platform.isAndroid) _rewardedAd!.setImmersiveMode(true);
+    _rewardedAd!.show(
+        onUserEarnedReward: (AdWithoutView ad, RewardItem reward) {
+      _log.info(
+          '$ad with reward $RewardItem(${reward.amount}, ${reward.type})');
+    });
   }
 
   Future<void> requestTheLatestConsentInformation() async {

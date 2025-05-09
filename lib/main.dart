@@ -123,7 +123,7 @@ class MyApp extends StatelessWidget {
     required this.adsController,
     required this.moneyController,
   });
- 
+
   @override
   Widget build(BuildContext context) {
     return AppLifecycleObserver(
@@ -165,9 +165,10 @@ class MyApp extends StatelessWidget {
               return blockedPlayers;
             },
           ),
-          // Provide also PlayTimeController - depends on SettingsController AI!
-          ChangeNotifierProvider<PlayTimeController>(
-            create: (context) => PlayTimeController(context.read<SettingsController>()),
+          Provider<PlayTimeController>(
+            create: (context) => PlayTimeController(
+                context.read<SettingsController>(), moneyController),
+            dispose: (context, value) => value.dispose(),
           ),
         ],
         builder: (context, child) {

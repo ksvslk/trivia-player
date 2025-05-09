@@ -90,12 +90,6 @@ class TriviaService extends ChangeNotifier {
         _activeQuestion = newMessage;
       } else if (newMessage.messageType == "round_end" ||
           newMessage.messageType == "round_end_with_category_selection") {
-        if (moneyController?.isSubscribed() == false) {
-          return;
-          Future.delayed(Duration(seconds: 3)).then((_) {
-            adsController?.showInterstitialAd();
-          });
-        }
         _activeQuestion = null;
       }
       _lastMessage = newMessage;

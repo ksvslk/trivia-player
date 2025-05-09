@@ -2,25 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:ffi';
-
 /// An interface of persistence stores for settings.
 ///
 /// Implementations can range from simple in-memory storage through
 /// local preferences to cloud-based solutions.
 abstract class SettingsPersistence {
-
-  Future<int> getElapsedSeconds();
   Future<bool> getBlockedExpanded();
   Future<bool> getColorsExpanded();
   Future<bool> getSoundsOn();
   Future<int> getSeedColor();
   Future<String> getToken();
   Future<Map<String, String>> getBanned();
-  Future<int> getLockTimeStart();
 
-  Future<void> saveLockTimeStart();
-  Future<void> saveElapsedSeconds(int seconds);
   Future<void> saveBlockedExpanded(bool value);
   Future<void> saveColorsExpanded(bool value);
   Future<void> saveSoundsOn(bool value);
@@ -29,5 +22,8 @@ abstract class SettingsPersistence {
   Future<Map<String, String>> setBan(String id, String name);
   Future<Map<String, String>> removeBan(String id);
 
-
+  Future<int> getPlayTimeEnd();
+  Future<void> savePlayTimeEnd(bool disable);
+  Future<int> getLockTimeEnd();
+  Future<void> saveLockTimeEnd(bool disable);
 }

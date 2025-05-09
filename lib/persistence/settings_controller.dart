@@ -11,7 +11,7 @@ import 'settings_persistence.dart';
 
 /// An class that holds settings like [playerName] or [musicOn],
 /// and saves them to an injected persistence store.
-class SettingsController with WidgetsBindingObserver {
+class SettingsController {
   final Logger _log = Logger('SettingsController');
 
   final SettingsPersistence _persistence;
@@ -24,22 +24,10 @@ class SettingsController with WidgetsBindingObserver {
   ValueNotifier<bool> isBlockedExpanded = ValueNotifier(false);
   ValueNotifier<bool> isColorsExpanded = ValueNotifier(false);
 
-  ValueNotifier<int> lockTimeSecondsLeft = ValueNotifier(0);
-  ValueNotifier<int> playTimeElapsed = ValueNotifier(0);
-  ValueNotifier<bool> isPlayTimeReached = ValueNotifier(false);
-
-  Timer? _lockTimeCountdownTimer;
-  Timer? _elapsedPlayTimer;
-
-  final int _totalPlayTimeInSeconds = 60;
-  final int _totalLockTimeInSeconds = 120;
-
   /// Creates a new instance of [SettingsController] backed by [persistence].
   SettingsController({
     required SettingsPersistence persistence,
-  }) : _persistence = persistence {
-    WidgetsBinding.instance.addObserver(this);
-  }
+  }) : _persistence = persistence;
 
   /// Asynchronously loads values from the injected persistence store.
   Future<void> loadStateFromPersistence() async {
@@ -54,15 +42,6 @@ class SettingsController with WidgetsBindingObserver {
           .then((value) => isColorsExpanded.value = value),
     ]);
     _log.info("loadStateFromPersistence");
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-
-    } else if (state == AppLifecycleState.paused) {
-
-    }
   }
 
   Future<void> saveBlockedExpanded(bool expanded) async {
@@ -103,11 +82,19 @@ class SettingsController with WidgetsBindingObserver {
     return await _persistence.removeBan(id);
   }
 
-  Future<int> getLockTimeStart() async {
-    return await _persistence.getLockTimeStart();
+  Future<int> getPlayTimeEnd() async {
+    return await _persistence.getPlayTimeEnd();
   }
 
-  Future<void> saveLockTimeStart() async {
-    _persistence.saveLockTimeStart();
+  Future<void> savePlayTimeEnd({bool disable = false}) async {
+    await _persistence.savePlayTimeEnd(disable);
+  }
+
+  Future<int> getLockTimeEnd() async {
+    return await _persistence.getLockTimeEnd();
+  }
+
+  Future<void> saveLockTimeEnd({bool disable = false}) async {
+    await _persistence.saveLockTimeEnd(disable);
   }
 }
