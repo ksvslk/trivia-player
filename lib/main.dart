@@ -166,6 +166,9 @@ class MyApp extends StatelessWidget {
             },
           ),
           // Provide also PlayTimeController - depends on SettingsController AI!
+          ChangeNotifierProvider<PlayTimeController>(
+            create: (context) => PlayTimeController(context.read<SettingsController>()),
+          ),
         ],
         builder: (context, child) {
           final settingsController = context.read<SettingsController>();
