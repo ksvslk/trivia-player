@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:operation_veritas/ads/blocking_overlay_popup.dart';
 import 'package:operation_veritas/change_notifier/banner_message_visibility.dart';
+import 'package:operation_veritas/change_notifier/money_controller.dart';
 import 'package:operation_veritas/change_notifier/play_time_controller.dart';
 import 'package:operation_veritas/chat_page/trivia_chat.dart';
 import 'package:operation_veritas/menus/menu_drawer.dart';
@@ -30,13 +31,21 @@ class HomeScreen extends StatelessWidget {
             name: "An_${Random().nextInt(1000)}",
             userColor: userColor,
           ),
-          StreamBuilder<bool>(
-            stream: playTimeController.onPopupVisibilityUpdate,
-            initialData: playTimeController.lockTimeEnd > 0,
-            builder: (context, snapshot) {
-              return snapshot.data == true ? const BlockingOverlayPopup() : const SizedBox.shrink();
-            },
-          ),
+          Consumer<MoneyController>(builder: (context, value, child) {
+            if (value.isSubscribed()) {
+              return SizedBox.shrink();
+            } else {
+              return StreamBuilder<bool>(
+                stream: playTimeController.onPopupVisibilityUpdate,
+                initialData: playTimeController.lockTimeEnd > 0,
+                builder: (context, snapshot) {
+                  return snapshot.data == true
+                      ? const BlockingOverlayPopup()
+                      : const SizedBox.shrink();
+                },
+              );
+            }
+          }),
         ],
       ),
       floatingActionButton: Builder(
@@ -44,7 +53,10 @@ class HomeScreen extends StatelessWidget {
           return Consumer<BannerMessageVisibility>(
             builder: (context, banner, child) {
               return Opacity(
-                opacity: banner.isQuestionVisibleOnScreen() || banner.isRoundBreak() ? 1.0 : 0.0,
+                opacity:
+                    banner.isQuestionVisibleOnScreen() || banner.isRoundBreak()
+                        ? 1.0
+                        : 0.0,
                 child: FloatingActionButton(
                   elevation: 4.0,
                   mini: true,

@@ -121,7 +121,7 @@ class LocalStorageSettingsPersistence extends SettingsPersistence {
       return;
     }
     final playTimeEnd = DateTime.now()
-        .add(Duration(seconds: 15))
+        .add(Duration(seconds: 300))
         .toUtc()
         .millisecondsSinceEpoch;
     await prefs.setInt('playTimeEnd', playTimeEnd);
@@ -141,7 +141,7 @@ class LocalStorageSettingsPersistence extends SettingsPersistence {
       return;
     }
     final lockTimeEnd = DateTime.now()
-        .add(Duration(seconds: 10))
+        .add(Duration(seconds: 900))
         .toUtc()
         .millisecondsSinceEpoch;
     await prefs.setInt('lockTimeEnd', lockTimeEnd);

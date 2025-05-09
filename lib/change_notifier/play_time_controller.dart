@@ -1,10 +1,8 @@
 import 'dart:async';
-import 'package:operation_veritas/change_notifier/money_controller.dart';
 import 'package:operation_veritas/persistence/settings_controller.dart';
 
 class PlayTimeController {
   final SettingsController _settingsController;
-  final MoneyController _moneyController;
   late Timer _timer;
 
   final _lockTimeEndController = StreamController<int>.broadcast();
@@ -16,31 +14,8 @@ class PlayTimeController {
   int lockTimeEnd = -1;
   int _playTimeEnd = -1;
 
-  PlayTimeController(this._settingsController, this._moneyController) {
-    if (!_moneyController.isSubscribed()) {
-      _initialize();
-    }
-    // We always listen if subscription changes
-    _moneyController.addListener(_onCustomerInfoChanged);
-  }
-
-  void _onCustomerInfoChanged() {
-    if (_moneyController.isSubscribed()) {
-      _shutdown();
-    } else {
-      _initialize();
-    }
-  }
-
-  void _shutdown() {
-    _timer.cancel();
-    _settingsController.saveLockTimeEnd(disable: true);
-    _settingsController.savePlayTimeEnd(disable: true);
-    lockTimeEnd = -1;
-    _playTimeEnd = -1;
-    _popupVisibilityController.add(false);
-    _lockTimeEndController.close();
-    _popupVisibilityController.close();
+  PlayTimeController(this._settingsController) {
+    _initialize();
   }
 
   Future<void> _initialize() async {
@@ -54,6 +29,7 @@ class PlayTimeController {
   }
 
   Future<void> _handleTick(Timer _) async {
+
     final now = DateTime.now().toUtc().millisecondsSinceEpoch;
 
     final latestPlayTime = await _settingsController.getPlayTimeEnd();
@@ -82,9 +58,6 @@ class PlayTimeController {
   }
 
   Future<void> _transitionToLockTime() async {
-    if (_moneyController.isSubscribed()) {
-      return;
-    }
 
     await _settingsController.savePlayTimeEnd(disable: true);
     await _settingsController.saveLockTimeEnd();
@@ -99,6 +72,5 @@ class PlayTimeController {
     _timer.cancel();
     _lockTimeEndController.close();
     _popupVisibilityController.close();
-    _moneyController.removeListener(_onCustomerInfoChanged);
   }
 }

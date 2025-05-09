@@ -167,7 +167,7 @@ class MyApp extends StatelessWidget {
           ),
           Provider<PlayTimeController>(
             create: (context) => PlayTimeController(
-                context.read<SettingsController>(), moneyController),
+                context.read<SettingsController>()),
             dispose: (context, value) => value.dispose(),
           ),
         ],
