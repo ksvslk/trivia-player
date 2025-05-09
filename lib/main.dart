@@ -13,6 +13,7 @@ import 'package:operation_veritas/ads/ads_controller.dart';
 import 'package:operation_veritas/change_notifier/blocked_players.dart';
 import 'package:operation_veritas/change_notifier/banner_message_visibility.dart';
 import 'package:operation_veritas/change_notifier/money_controller.dart';
+import 'package:operation_veritas/change_notifier/play_time_controller.dart';
 import 'package:operation_veritas/change_notifier/trivia_service.dart';
 import 'package:operation_veritas/home_screen.dart';
 import 'package:provider/provider.dart';
@@ -123,6 +124,8 @@ class MyApp extends StatelessWidget {
     required this.moneyController,
   });
 
+ // I need PlayTimeController to be provided but I don't know how to add also SettingsController to its constructor here AI?
+ 
   @override
   Widget build(BuildContext context) {
     return AppLifecycleObserver(
