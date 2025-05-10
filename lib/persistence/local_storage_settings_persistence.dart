@@ -108,43 +108,35 @@ class LocalStorageSettingsPersistence extends SettingsPersistence {
   }
 
   @override
-  Future<int> getPlayTimeEnd() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getInt('playTimeEnd') ?? -1;
-  }
-
-  @override
-  Future<void> savePlayTimeEnd(bool disable) async {
-    final prefs = await SharedPreferences.getInstance();
-    if (disable) {
-      await prefs.setInt('playTimeEnd', -1);
-      return;
-    }
-    final playTimeEnd = DateTime.now()
-        .add(Duration(seconds: 300))
-        .toUtc()
-        .millisecondsSinceEpoch;
-    await prefs.setInt('playTimeEnd', playTimeEnd);
-  }
-
-  @override
   Future<int> getLockTimeEnd() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getInt('lockTimeEnd') ?? -1;
+    return prefs.getInt('lockTimeEnd') ?? 0;
   }
 
   @override
-  Future<void> saveLockTimeEnd(bool disable) async {
+  Future<int> saveLockTimeEnd(int newValue) async {
     final prefs = await SharedPreferences.getInstance();
-    if (disable) {
-      await prefs.setInt('lockTimeEnd', -1);
-      return;
-    }
-    final lockTimeEnd = DateTime.now()
-        .add(Duration(seconds: 900))
-        .toUtc()
-        .millisecondsSinceEpoch;
+    final lockTimeEnd = newValue == -1
+        ? DateTime.now()
+            .add(Duration(seconds: 90))
+            .toUtc()
+            .millisecondsSinceEpoch
+        : 0;
     await prefs.setInt('lockTimeEnd', lockTimeEnd);
+    return lockTimeEnd;
+  }
+
+  @override
+  Future<int> getLastRoundWithAd() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt('lastRoundAd') ?? -1;
+  }
+
+  @override
+  Future<int> setLastRoundWithAd(int roundNumber) async {
+    final prefs = await instanceFuture;
+    await prefs.setInt('lastRoundAd', roundNumber);
+    return roundNumber;
   }
   
 }

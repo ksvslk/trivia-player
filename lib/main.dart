@@ -13,7 +13,6 @@ import 'package:operation_veritas/ads/ads_controller.dart';
 import 'package:operation_veritas/change_notifier/blocked_players.dart';
 import 'package:operation_veritas/change_notifier/banner_message_visibility.dart';
 import 'package:operation_veritas/change_notifier/money_controller.dart';
-import 'package:operation_veritas/change_notifier/play_time_controller.dart';
 import 'package:operation_veritas/change_notifier/trivia_service.dart';
 import 'package:operation_veritas/home_screen.dart';
 import 'package:provider/provider.dart';
@@ -94,9 +93,13 @@ Future<void> main() async {
     adsController.requestTheLatestConsentInformation();
   }
 
+  final settingsController =
+      SettingsController(persistence: LocalStorageSettingsPersistence());
+  await settingsController.loadStateFromPersistence();
+
   runApp(
     MyApp(
-      settingsPersistence: LocalStorageSettingsPersistence(),
+      settingsController: settingsController,
       adsController: adsController,
       moneyController: MoneyController(),
     ),
@@ -113,13 +116,13 @@ Logger _log = Logger('main.dart');
 //Color.fromARGB(255, 255, 0, 0)
 
 class MyApp extends StatelessWidget {
-  final SettingsPersistence settingsPersistence;
+  final SettingsController settingsController;
   final AdsController? adsController;
   final MoneyController moneyController;
 
   const MyApp({
     super.key,
-    required this.settingsPersistence,
+    required this.settingsController,
     required this.adsController,
     required this.moneyController,
   });
@@ -131,9 +134,7 @@ class MyApp extends StatelessWidget {
         providers: [
           Provider<SettingsController>(
             lazy: false,
-            create: (context) => SettingsController(
-              persistence: settingsPersistence,
-            )..loadStateFromPersistence(),
+            create: (context) => settingsController,
           ),
           ProxyProvider2<SettingsController, ValueNotifier<AppLifecycleState>,
               AudioController>(
@@ -153,7 +154,9 @@ class MyApp extends StatelessWidget {
           ),
           ChangeNotifierProvider(
             create: (context) => TriviaService(
-                adsController: adsController, moneyController: moneyController),
+                adsController: adsController,
+                moneyController: moneyController,
+                settingsController: settingsController),
           ),
           ChangeNotifierProvider(
             create: (context) => BannerMessageVisibility(),
@@ -165,15 +168,9 @@ class MyApp extends StatelessWidget {
               return blockedPlayers;
             },
           ),
-          Provider<PlayTimeController>(
-            create: (context) => PlayTimeController(
-                context.read<SettingsController>()),
-            dispose: (context, value) => value.dispose(),
-          ),
         ],
         builder: (context, child) {
           final settingsController = context.read<SettingsController>();
-
           return ValueListenableBuilder(
             valueListenable: settingsController.seedColor,
             builder: (context, changingSeedColor, _) {
@@ -181,7 +178,7 @@ class MyApp extends StatelessWidget {
                 DeviceOrientation.portraitUp,
                 DeviceOrientation.portraitDown,
               ]);
-
+    
               final lightTheme = ThemeData(
                 scaffoldBackgroundColor: Colors.white,
                 useMaterial3: true,

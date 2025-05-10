@@ -12,5 +12,6 @@ class MainActivity : FlutterFragmentActivity() {
             WindowManager.LayoutParams.FLAG_SECURE,
             WindowManager.LayoutParams.FLAG_SECURE
         )
+        
     }
 }

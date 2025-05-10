@@ -55,9 +55,9 @@ class MessageBubble extends StatelessWidget {
 
     // Determine avatar color
     final avatarColor = message.isBot
-        ? colorScheme.outlineVariant
+        ? colorScheme.tertiaryContainer
         : (isCurrentUser
-            ? colorScheme.tertiaryContainer
+            ? colorScheme.secondaryContainer
             : colorScheme.secondary);
 
     return [

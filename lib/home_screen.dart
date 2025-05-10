@@ -1,12 +1,14 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:operation_veritas/ads/blocking_overlay_popup.dart';
 import 'package:operation_veritas/change_notifier/banner_message_visibility.dart';
 import 'package:operation_veritas/change_notifier/money_controller.dart';
-import 'package:operation_veritas/change_notifier/play_time_controller.dart';
 import 'package:operation_veritas/chat_page/trivia_chat.dart';
 import 'package:operation_veritas/menus/menu_drawer.dart';
+import 'package:operation_veritas/persistence/settings_controller.dart';
 import 'package:provider/provider.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -21,7 +23,16 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final playTimeController = context.read<PlayTimeController>();
+    final settingsController = context.read<SettingsController>();
+    final colorScheme = Theme.of(context).colorScheme;
+    final brightness = colorScheme.brightness == Brightness.dark
+        ? Brightness.light
+        : Brightness.dark;
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+        systemNavigationBarColor: colorScheme.surface,
+        statusBarColor: colorScheme.surface,
+        systemNavigationBarIconBrightness: brightness,
+        statusBarIconBrightness: brightness));
 
     return Scaffold(
       drawer: MenuDrawer(parentNavigatorKey: navigatorKey),
@@ -31,20 +42,17 @@ class HomeScreen extends StatelessWidget {
             name: "An_${Random().nextInt(1000)}",
             userColor: userColor,
           ),
-          Consumer<MoneyController>(builder: (context, value, child) {
-            if (value.isSubscribed()) {
-              return SizedBox.shrink();
-            } else {
-              return StreamBuilder<bool>(
-                stream: playTimeController.onPopupVisibilityUpdate,
-                initialData: playTimeController.lockTimeEnd > 0,
-                builder: (context, snapshot) {
-                  return snapshot.data == true
-                      ? const BlockingOverlayPopup()
-                      : const SizedBox.shrink();
-                },
-              );
-            }
+          Consumer<MoneyController>(builder: (context, money, child) {
+            return ValueListenableBuilder<int>(
+              valueListenable: settingsController.lockTimeEnd,
+              builder: (context, lockTime, child) {
+                if (lockTime > 0 && !money.isSubscribed()) {
+                  return BlockingOverlayPopup();
+                } else {
+                  return SizedBox.shrink();
+                }
+              },
+            );
           }),
         ],
       ),

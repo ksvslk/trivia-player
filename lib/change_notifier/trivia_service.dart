@@ -5,10 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:operation_veritas/ads/ads_controller.dart';
 import 'package:operation_veritas/change_notifier/money_controller.dart';
 import 'package:operation_veritas/chat_page/message.dart';
+import 'package:operation_veritas/persistence/settings_controller.dart';
 
 class TriviaService extends ChangeNotifier {
   final AdsController? adsController;
   final MoneyController? moneyController;
+  final SettingsController? settingsController;
+
   final DatabaseReference _messagesRef =
       FirebaseDatabase.instance.ref().child('trivia_messages');
   final DatabaseReference _playerCountRef =
@@ -31,7 +34,8 @@ class TriviaService extends ChangeNotifier {
   Message? get getActiveQuestion => _activeQuestion;
   Message? get getLastMessage => _lastMessage;
 
-  TriviaService({this.moneyController, this.adsController}) {
+  TriviaService(
+      {this.moneyController, this.adsController, this.settingsController}) {
     _initialize();
   }
 
@@ -58,7 +62,7 @@ class TriviaService extends ChangeNotifier {
     });
 
     // Messages listener with limit for initial load
-    _messagesRef.limitToLast(50).onChildAdded.listen(_handleNewMessage);
+    _messagesRef.limitToLast(1).onChildAdded.listen(_handleNewMessage);
 
     // Mark loading as complete after a short delay to ensure initial messages are loaded
     Future.delayed(const Duration(milliseconds: 500), () {
@@ -90,6 +94,7 @@ class TriviaService extends ChangeNotifier {
         _activeQuestion = newMessage;
       } else if (newMessage.messageType == "round_end" ||
           newMessage.messageType == "round_end_with_category_selection") {
+            showAdWhenNeeded(newMessage);
         _activeQuestion = null;
       }
       _lastMessage = newMessage;
@@ -97,6 +102,16 @@ class TriviaService extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       debugPrint('Error parsing message: $e');
+    }
+  }
+
+  Future<void> showAdWhenNeeded(Message message) async {
+    if (moneyController?.isSubscribed() == true) return;
+    final lastRoundWithAd = await settingsController?.getLastRoundWithAd() ?? -1;
+    if (lastRoundWithAd == -1) await settingsController?.setLastRoundWithAd(newValue: 0); // skip first for new users
+    if (message.roundNumber > lastRoundWithAd) {
+      await settingsController?.setLastRoundWithAd(newValue: message.roundNumber);
+      settingsController?.saveLockTimeEnd();
     }
   }
 

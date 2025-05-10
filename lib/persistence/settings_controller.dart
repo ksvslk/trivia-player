@@ -23,6 +23,9 @@ class SettingsController {
   ValueNotifier<int> seedColor = ValueNotifier(C.defaultThemeColor.toARGB32());
   ValueNotifier<bool> isBlockedExpanded = ValueNotifier(false);
   ValueNotifier<bool> isColorsExpanded = ValueNotifier(false);
+  ValueNotifier<int> lockTimeEnd = ValueNotifier(0);
+  ValueNotifier<String> formattedTimeLeft = ValueNotifier("00:00");
+  Timer? _lockTimeCheckTimer;
 
   /// Creates a new instance of [SettingsController] backed by [persistence].
   SettingsController({
@@ -31,6 +34,8 @@ class SettingsController {
 
   /// Asynchronously loads values from the injected persistence store.
   Future<void> loadStateFromPersistence() async {
+    _lockTimeCheckTimer?.cancel();
+
     await Future.wait([
       _persistence.getSoundsOn().then((value) => soundsOn.value = value),
       _persistence.getSeedColor().then((value) => seedColor.value = value),
@@ -40,8 +45,25 @@ class SettingsController {
       _persistence
           .getColorsExpanded()
           .then((value) => isColorsExpanded.value = value),
+      _persistence.getLockTimeEnd().then((value) => lockTimeEnd.value = value)
     ]);
     _log.info("loadStateFromPersistence");
+    _lockTimeCheckTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      final currentTime = DateTime.now().toUtc().millisecondsSinceEpoch;
+      if (lockTimeEnd.value > 0 && currentTime >= lockTimeEnd.value) {
+        saveLockTimeEnd(newValue: 0);
+      }
+    });
+  }
+
+  void dispose() {
+    _lockTimeCheckTimer?.cancel();
+    _lockTimeCheckTimer = null;
+    soundsOn.dispose();
+    seedColor.dispose();
+    isBlockedExpanded.dispose();
+    isColorsExpanded.dispose();
+    lockTimeEnd.dispose();
   }
 
   Future<void> saveBlockedExpanded(bool expanded) async {
@@ -82,19 +104,19 @@ class SettingsController {
     return await _persistence.removeBan(id);
   }
 
-  Future<int> getPlayTimeEnd() async {
-    return await _persistence.getPlayTimeEnd();
-  }
-
-  Future<void> savePlayTimeEnd({bool disable = false}) async {
-    await _persistence.savePlayTimeEnd(disable);
-  }
-
   Future<int> getLockTimeEnd() async {
     return await _persistence.getLockTimeEnd();
   }
 
-  Future<void> saveLockTimeEnd({bool disable = false}) async {
-    await _persistence.saveLockTimeEnd(disable);
+  Future<void> saveLockTimeEnd({int newValue = -1}) async {
+    lockTimeEnd.value = await _persistence.saveLockTimeEnd(newValue);
+  }
+
+  Future<int> getLastRoundWithAd() async {
+    return await _persistence.getLastRoundWithAd();
+  }
+
+  Future<int> setLastRoundWithAd({int newValue = -1}) async {
+    return await _persistence.setLastRoundWithAd(newValue);
   }
 }

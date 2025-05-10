@@ -22,8 +22,9 @@ abstract class SettingsPersistence {
   Future<Map<String, String>> setBan(String id, String name);
   Future<Map<String, String>> removeBan(String id);
 
-  Future<int> getPlayTimeEnd();
-  Future<void> savePlayTimeEnd(bool disable);
   Future<int> getLockTimeEnd();
-  Future<void> saveLockTimeEnd(bool disable);
+  Future<int> saveLockTimeEnd(int newValue);
+
+  Future<int> getLastRoundWithAd();
+  Future<int> setLastRoundWithAd(int roundNumber);
 }

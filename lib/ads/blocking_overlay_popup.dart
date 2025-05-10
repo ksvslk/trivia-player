@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:operation_veritas/ads/ads_controller.dart';
 import 'package:operation_veritas/change_notifier/money_controller.dart';
-import 'package:operation_veritas/change_notifier/play_time_controller.dart';
+import 'package:operation_veritas/persistence/settings_controller.dart';
 import 'package:provider/provider.dart';
 
 class BlockingOverlayPopup extends StatelessWidget {
@@ -11,7 +11,7 @@ class BlockingOverlayPopup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final playTimeController = context.read<PlayTimeController>();
+    final settingsController = context.read<SettingsController>();
     final adsController = context.watch<AdsController>();
     final moneyController = context.read<MoneyController>();
 
@@ -71,7 +71,7 @@ class BlockingOverlayPopup extends StatelessWidget {
                                     style: TextStyle(
                                       fontSize: 14,
                                       fontFamily: 'Inter',
-                                      color: colorScheme.onTertiaryContainer,
+                                      color: adsController.rewardedAd == null ? colorScheme.onSurfaceVariant : colorScheme.onTertiaryContainer,
                                     ),
                                   ),
                                   style: ElevatedButton.styleFrom(
@@ -82,17 +82,19 @@ class BlockingOverlayPopup extends StatelessWidget {
                                     minimumSize:
                                         const Size(double.infinity, 50),
                                   ),
-                                  onPressed: adsController.rewardedAd == null ? null : () {
-                                    adsController.rewardedAd?.show(
-                                      onUserEarnedReward: (
-                                        AdWithoutView ad,
-                                        RewardItem rewardItem,
-                                      ) {
-                                        playTimeController
-                                            .transitionToPlayTime();
-                                      },
-                                    );
-                                  },
+                                  onPressed: adsController.rewardedAd == null
+                                      ? null
+                                      : () {
+                                          adsController.rewardedAd?.show(
+                                            onUserEarnedReward: (
+                                              AdWithoutView ad,
+                                              RewardItem rewardItem,
+                                            ) {
+                                              settingsController
+                                                  .saveLockTimeEnd(newValue: 0);
+                                            },
+                                          );
+                                        },
                                 ),
                                 const SizedBox(height: 16),
                                 ElevatedButton.icon(
@@ -142,19 +144,19 @@ class BlockingOverlayPopup extends StatelessWidget {
                                     minimumSize:
                                         const Size(double.infinity, 50),
                                   ),
-                                  child: StreamBuilder<int>(
-                                    stream: playTimeController.onLockTimeUpdate,
-                                    builder: (context, snapshot) {
-                                      final remainingMillis =
-                                          snapshot.data ?? 0;
-                                      final remainingSeconds =
-                                          (remainingMillis / 1000).ceil();
-                                      final minutes = remainingSeconds ~/ 60;
-                                      final seconds = remainingSeconds % 60;
+                                  child: ValueListenableBuilder<int>(
+                                    valueListenable:
+                                        settingsController.lockTimeEnd,
+                                    builder: (context, time, child) {
+                                      final dateTime =
+                                          DateTime.fromMillisecondsSinceEpoch(
+                                                  time,
+                                                  isUtc: true)
+                                              .toLocal();
                                       final formatted =
-                                          '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+                                          '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
                                       return Text(
-                                        'Continuing in $formatted',
+                                        'Continue time: $formatted',
                                         style: const TextStyle(fontSize: 14),
                                       );
                                     },
