@@ -62,7 +62,10 @@ class TriviaService extends ChangeNotifier {
     });
 
     // Messages listener with limit for initial load
-    _messagesRef.limitToLast(1).onChildAdded.listen(_handleNewMessage);
+    _messagesRef
+        .limitToLast(10)
+        .onChildAdded
+        .listen(_handleNewMessage);
 
     // Mark loading as complete after a short delay to ensure initial messages are loaded
     Future.delayed(const Duration(milliseconds: 500), () {
@@ -94,7 +97,7 @@ class TriviaService extends ChangeNotifier {
         _activeQuestion = newMessage;
       } else if (newMessage.messageType == "round_end" ||
           newMessage.messageType == "round_end_with_category_selection") {
-            showAdWhenNeeded(newMessage);
+        showAdWhenNeeded(newMessage);
         _activeQuestion = null;
       }
       _lastMessage = newMessage;
@@ -107,10 +110,15 @@ class TriviaService extends ChangeNotifier {
 
   Future<void> showAdWhenNeeded(Message message) async {
     if (moneyController?.isSubscribed() == true) return;
-    final lastRoundWithAd = await settingsController?.getLastRoundWithAd() ?? -1;
-    if (lastRoundWithAd == -1) await settingsController?.setLastRoundWithAd(newValue: 0); // skip first for new users
+    final lastRoundWithAd =
+        await settingsController?.getLastRoundWithAd() ?? -1;
+    if (lastRoundWithAd == -1) {
+      await settingsController?.setLastRoundWithAd(
+          newValue: 0); // skip first for new users
+    }
     if (message.roundNumber > lastRoundWithAd) {
-      await settingsController?.setLastRoundWithAd(newValue: message.roundNumber);
+      await settingsController?.setLastRoundWithAd(
+          newValue: message.roundNumber);
       settingsController?.saveLockTimeEnd();
     }
   }

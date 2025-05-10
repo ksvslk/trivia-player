@@ -156,7 +156,7 @@ class BlockingOverlayPopup extends StatelessWidget {
                                       final formatted =
                                           '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
                                       return Text(
-                                        'Continue time: $formatted',
+                                        'Locked until $formatted',
                                         style: const TextStyle(fontSize: 14),
                                       );
                                     },
