@@ -111,10 +111,11 @@ class TriviaService extends ChangeNotifier {
   Future<void> showAdWhenNeeded(Message message) async {
     if (moneyController?.isSubscribed() == true) return;
     final lastRoundWithAd =
-        await settingsController?.getLastRoundWithAd() ?? -1;
-    if (lastRoundWithAd == -1) {
+        await settingsController?.getLastRoundWithAd() ?? -2;
+    if (lastRoundWithAd < 0) {
       await settingsController?.setLastRoundWithAd(
-          newValue: 0); // skip first for new users
+          newValue: lastRoundWithAd + 1); // skip first for new users
+          return;
     }
     if (message.roundNumber > lastRoundWithAd) {
       await settingsController?.setLastRoundWithAd(

@@ -129,7 +129,7 @@ class LocalStorageSettingsPersistence extends SettingsPersistence {
   @override
   Future<int> getLastRoundWithAd() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getInt('lastRoundAd') ?? -1;
+    return prefs.getInt('lastRoundAd') ?? -2;
   }
 
   @override
@@ -138,5 +138,5 @@ class LocalStorageSettingsPersistence extends SettingsPersistence {
     await prefs.setInt('lastRoundAd', roundNumber);
     return roundNumber;
   }
-  
+
 }

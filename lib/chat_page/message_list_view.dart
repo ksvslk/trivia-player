@@ -29,7 +29,7 @@ class MessageListView extends StatelessWidget {
           .where(
               (el) => !blockedPlayers.blockedPlayers.containsKey(el.playerUid))
           .toList();
-
+      final colorScheme = Theme.of(context).colorScheme;
       return ListView.builder(
         controller: scrollController,
         reverse: true,
@@ -46,22 +46,33 @@ class MessageListView extends StatelessWidget {
 
           if (isLastQuestion) {
             return VisibilityDetector(
-              key: Key('last-question-${message.id}'),
-              onVisibilityChanged: (visibilityInfo) {
-                final visiblePercentage = visibilityInfo.visibleFraction * 100;
-                final isVisible = visiblePercentage > 75;
-                context
-                    .read<BannerMessageVisibility>()
-                    .setQuestionVisibilityOnScreen(isVisible);
-              },
-              child: MessageBubble(
-                message: message,
-                messageBefore: messageBefore,
-                isCurrentUser: isCurrentUser,
-                playerId: currentUserId,
-                formatTimestamp: formatTimestamp,
-              ),
-            );
+                key: Key('last-question-${message.id}'),
+                onVisibilityChanged: (visibilityInfo) {
+                  final visiblePercentage =
+                      visibilityInfo.visibleFraction * 100;
+                  final isVisible = visiblePercentage > 75;
+                  context
+                      .read<BannerMessageVisibility>()
+                      .setQuestionVisibilityOnScreen(isVisible);
+                },
+                child: ShaderMask(
+                  shaderCallback: (bounds) => LinearGradient(
+                    colors: [
+                      colorScheme.tertiaryContainer.withValues(alpha: 0.2),
+                      colorScheme.tertiary.withValues(alpha: 0.6),
+                    ],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomRight,
+                  ).createShader(bounds),
+                  blendMode: BlendMode.srcATop,
+                  child: MessageBubble(
+                    message: message,
+                    messageBefore: messageBefore,
+                    isCurrentUser: isCurrentUser,
+                    playerId: currentUserId,
+                    formatTimestamp: formatTimestamp,
+                  ),
+                ));
           }
 
           WidgetsBinding.instance.addPostFrameCallback((_) {
