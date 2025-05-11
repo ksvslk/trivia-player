@@ -47,6 +47,7 @@ class HomeScreen extends StatelessWidget {
               valueListenable: settingsController.lockTimeEnd,
               builder: (context, lockTime, child) {
                 if (lockTime > 0 && !money.isSubscribed()) {
+                  primaryFocus?.unfocus();
                   return BlockingOverlayPopup();
                 } else {
                   return SizedBox.shrink();
