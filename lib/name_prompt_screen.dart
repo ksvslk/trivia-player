@@ -64,7 +64,7 @@ class NamePromptScreenState extends State<NamePromptScreen> {
   void _navigateToTriviaChat(String userName, Color randomColor) {
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
-        builder: (context) => TriviaChat(name: userName, userColor: randomColor),
+        builder: (context) => TriviaChat(),
       ),
     );
   }

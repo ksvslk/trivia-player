@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:operation_veritas/chat_page/message.dart';
 import 'package:operation_veritas/chat_page/message_avatar.dart';
+import 'package:operation_veritas/extensions.dart';
 
 class MessageBubble extends StatelessWidget {
   final Message message;
@@ -57,8 +58,8 @@ class MessageBubble extends StatelessWidget {
     final avatarColor = message.isBot
         ? colorScheme.tertiaryContainer
         : (isCurrentUser
-            ? colorScheme.secondaryContainer
-            : colorScheme.secondary);
+            ? colorScheme.primary
+            : colorScheme.secondary.pastelColorFromName(message.name));
 
     return [
       // Message bubble

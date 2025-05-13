@@ -6,7 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class MessageAvatar extends StatefulWidget {
-  final Color avatarColor;
+  final Color? avatarColor;
   final Message message;
   final bool isCurrentUser;
 
@@ -78,15 +78,15 @@ class _MessageAvatarState extends State<MessageAvatar> {
             backgroundColor: widget.avatarColor,
             child: widget.message.isBot
                 ? ImageIcon(
-                    AssetImage(widget.message.messageType == 'question' ? "assets/images/avatar_question.png" : "assets/images/avatar_regular.png"),
-                    color: widget.avatarColor.contrastingTextColor,
+                    AssetImage(widget.message.messageType == 'question' ? "assets/images/avatar_question.png" : "assets/images/avatar_question.png"),
+                    color: widget.avatarColor?.contrastingTextColor,
                   )
                 : Text(
                     _getAvatarText(),
                     style: TextStyle(
                       fontFamily: 'WorkSans',
                       fontSize: widget.message.isBot ? 18 : 16,
-                      color: widget.avatarColor.contrastingTextColor,
+                      color: widget.avatarColor?.contrastingTextColor,
                     ),
                   ),
           ),

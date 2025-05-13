@@ -66,10 +66,10 @@ class MessageInputState extends State<MessageInput> {
           ),
           const SizedBox(width: 8),
           FloatingActionButton.small(
-            elevation: 4.0,
-            focusElevation: 4.0,
-            hoverElevation: 4.0,
-            highlightElevation: 4.0,
+            elevation: 1.0,
+            focusElevation: 1.0,
+            hoverElevation: 1.0,
+            highlightElevation: 1.0,
             onPressed: () {
               widget.onSend(); // Call the provided onSend callback
             },

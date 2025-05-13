@@ -8,9 +8,7 @@ import 'package:operation_veritas/change_notifier/trivia_service.dart';
 import 'package:provider/provider.dart';
 
 class TriviaChat extends StatefulWidget {
-  const TriviaChat({super.key, required this.name, required this.userColor});
-  final String name;
-  final Color userColor;
+  const TriviaChat({super.key});
 
   @override
   State<TriviaChat> createState() => _TriviaChatState();
@@ -25,7 +23,6 @@ class _TriviaChatState extends State<TriviaChat> {
   @override
   void initState() {
     super.initState();
-    context.read<TriviaService>().setUserName(widget.name);
   }
 
   @override

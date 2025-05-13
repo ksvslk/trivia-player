@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:operation_veritas/ads/ads_controller.dart';
 import 'package:operation_veritas/change_notifier/money_controller.dart';
 import 'package:operation_veritas/chat_page/message.dart';
+import 'package:operation_veritas/extensions.dart';
 import 'package:operation_veritas/persistence/settings_controller.dart';
 
 class TriviaService extends ChangeNotifier {
@@ -41,6 +42,8 @@ class TriviaService extends ChangeNotifier {
 
   void _initialize() {
     _currentUserId = FirebaseAuth.instance.currentUser?.uid;
+    final username = _currentUserId?.generateLifelikeUsername();
+    setUserName(username ?? "");
     _setupListeners();
   }
 
@@ -91,7 +94,7 @@ class TriviaService extends ChangeNotifier {
         messageType: message['messageType'] ?? '',
         questionStartTime: message['questionStartTime'] ?? -1,
         questionEndTime: message['questionEndTime'] ?? -1,
-        serverTime: message['serverTime'] ?? -1,
+        serverTime: message['serverTime'] ?? -1
       );
       if (newMessage.messageType == "question") {
         _activeQuestion = newMessage;

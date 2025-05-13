@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 class Message {
   final String text;
   final String badgeText;

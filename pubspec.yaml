@@ -1,7 +1,7 @@
 name: operation_veritas
 description: "A new Flutter project."
 publish_to: 'none'
-version: 0.1.12+14
+version: 0.1.13+15
 
 environment:
   sdk: ^3.5.3
@@ -32,6 +32,7 @@ dependencies:
   visibility_detector: ^0.4.0+2
   purchases_flutter: ^8.8.0
   fluttertoast: ^8.2.12
+  crypto: ^3.0.6
 
 dev_dependencies:
   flutter_test:

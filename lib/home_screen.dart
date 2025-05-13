@@ -38,10 +38,7 @@ class HomeScreen extends StatelessWidget {
       drawer: MenuDrawer(parentNavigatorKey: navigatorKey),
       body: Stack(
         children: [
-          TriviaChat(
-            name: "An_${Random().nextInt(1000)}",
-            userColor: userColor,
-          ),
+          TriviaChat(),
           Consumer<MoneyController>(builder: (context, money, child) {
             return ValueListenableBuilder<int>(
               valueListenable: settingsController.lockTimeEnd,
