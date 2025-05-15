@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 class Message {
   final String text;
   final String badgeText;
@@ -13,6 +11,7 @@ class Message {
   final int questionStartTime;
   final int questionEndTime;
   final int serverTime;
+  final String photoUrl;
 
   Message(
       {required this.text,
@@ -26,5 +25,6 @@ class Message {
       required this.playerUid,
       required this.questionStartTime,
       required this.questionEndTime,
-      required this.serverTime});
+      required this.serverTime,
+      required this.photoUrl});
 }

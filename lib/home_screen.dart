@@ -1,9 +1,7 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:operation_veritas/ads/blocking_overlay_popup.dart';
+import 'package:operation_veritas/auth_services/auth_controller.dart';
 import 'package:operation_veritas/change_notifier/banner_message_visibility.dart';
 import 'package:operation_veritas/change_notifier/money_controller.dart';
 import 'package:operation_veritas/chat_page/trivia_chat.dart';
@@ -12,12 +10,10 @@ import 'package:operation_veritas/persistence/settings_controller.dart';
 import 'package:provider/provider.dart';
 
 class HomeScreen extends StatelessWidget {
-  final Color userColor;
   final GlobalKey<NavigatorState> navigatorKey;
 
   const HomeScreen({
     super.key,
-    required this.userColor,
     required this.navigatorKey,
   });
 
@@ -38,7 +34,36 @@ class HomeScreen extends StatelessWidget {
       drawer: MenuDrawer(parentNavigatorKey: navigatorKey),
       body: Stack(
         children: [
-          TriviaChat(),
+          Consumer<AuthController>(builder: (context, auth, child) {
+            if (auth.authState == AuthState.authenticated) {
+              return TriviaChat();
+            } else if (auth.authState == AuthState.none) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Failed to authenticate :(',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                          fontSize: 14,
+                          fontFamily: 'Inter',
+                          color:  colorScheme.onSurface),
+                    ),
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: () {
+                        auth.initialize();
+                      },
+                      child: const Text('Try again'),
+                    ),
+                  ],
+                ),
+              );
+            } else {
+              return const Center(child: CircularProgressIndicator());
+            }
+          }),
           Consumer<MoneyController>(builder: (context, money, child) {
             return ValueListenableBuilder<int>(
               valueListenable: settingsController.lockTimeEnd,

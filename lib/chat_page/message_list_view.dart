@@ -58,8 +58,8 @@ class MessageListView extends StatelessWidget {
                 child: ShaderMask(
                   shaderCallback: (bounds) => LinearGradient(
                     colors: [
-                      colorScheme.tertiaryContainer.withValues(alpha: 0.2),
-                      colorScheme.secondary.withValues(alpha: 0.6),
+                      colorScheme.tertiaryContainer.withValues(alpha: 0.1),
+                      colorScheme.primary.withValues(alpha: 0.5),
                     ],
                     begin: Alignment.topCenter,
                     end: Alignment.bottomRight,

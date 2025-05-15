@@ -21,7 +21,6 @@ class MessageAvatar extends StatefulWidget {
 }
 
 class _MessageAvatarState extends State<MessageAvatar> {
-
   String _getAvatarText() {
     if (widget.message.name.isNotEmpty) {
       return widget.message.name.substring(0, 1).toUpperCase();
@@ -33,7 +32,7 @@ class _MessageAvatarState extends State<MessageAvatar> {
   @override
   Widget build(BuildContext context) {
     final blockedPlayers = context.read<BlockedPlayers>();
-    
+
     return MenuAnchor(
       style: MenuStyle(
           visualDensity: VisualDensity.compact,
@@ -78,17 +77,28 @@ class _MessageAvatarState extends State<MessageAvatar> {
             backgroundColor: widget.avatarColor,
             child: widget.message.isBot
                 ? ImageIcon(
-                    AssetImage(widget.message.messageType == 'question' ? "assets/images/avatar_question.png" : "assets/images/avatar_question.png"),
+                    AssetImage(widget.message.messageType == 'question'
+                        ? "assets/images/avatar_question.png"
+                        : "assets/images/avatar_question.png"),
                     color: widget.avatarColor?.contrastingTextColor,
                   )
-                : Text(
-                    _getAvatarText(),
-                    style: TextStyle(
-                      fontFamily: 'WorkSans',
-                      fontSize: widget.message.isBot ? 18 : 16,
-                      color: widget.avatarColor?.contrastingTextColor,
-                    ),
-                  ),
+                : (widget.message.photoUrl.isNotEmpty
+                    ? ClipOval(
+                        child: Image.network(
+                          widget.message.photoUrl,
+                          width: 30,
+                          height: 30,
+                          fit: BoxFit.cover,
+                        ),
+                      )
+                    : Text(
+                        _getAvatarText(),
+                        style: TextStyle(
+                          fontFamily: 'WorkSans',
+                          fontSize: widget.message.isBot ? 18 : 16,
+                          color: widget.avatarColor?.contrastingTextColor,
+                        ),
+                      )),
           ),
         );
       },

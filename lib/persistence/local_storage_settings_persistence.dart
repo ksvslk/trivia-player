@@ -118,7 +118,7 @@ class LocalStorageSettingsPersistence extends SettingsPersistence {
     final prefs = await SharedPreferences.getInstance();
     final lockTimeEnd = newValue == -1
         ? DateTime.now()
-            .add(Duration(seconds: 90))
+            .add(Duration(seconds: 300))
             .toUtc()
             .millisecondsSinceEpoch
         : 0;

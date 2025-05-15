@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:operation_veritas/auth_services/auth_controller.dart';
 import 'package:operation_veritas/change_notifier/money_controller.dart';
-import 'package:operation_veritas/menus/credits_dialog.dart';
 import 'package:operation_veritas/change_notifier/blocked_players.dart';
 import 'package:operation_veritas/persistence/settings_controller.dart';
 import 'package:provider/provider.dart';
@@ -9,14 +9,14 @@ import 'package:package_info_plus/package_info_plus.dart';
 // Re-using your existing enums
 enum ThemeSubMenuItem { red, yellow, green, blue, purple }
 
-class VersionDisplay extends StatefulWidget {
-  const VersionDisplay({super.key});
+class InfoDisplay extends StatefulWidget {
+  const InfoDisplay({super.key});
 
   @override
-  State<VersionDisplay> createState() => _VersionDisplayState();
+  State<InfoDisplay> createState() => _InfoDisplayState();
 }
 
-class _VersionDisplayState extends State<VersionDisplay> {
+class _InfoDisplayState extends State<InfoDisplay> {
   String _version = 'Loading...';
 
   @override
@@ -39,14 +39,33 @@ class _VersionDisplayState extends State<VersionDisplay> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16.0),
-      child: Text(
-        _version,
-        style: TextStyle(
-          fontSize: 12,
-          color: Colors.grey[600],
-        ),
-        textAlign: TextAlign.center,
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Consumer<AuthController>(
+            builder: (context, auth, child) {
+              return Text(
+                "Player: ${auth.playerName}",
+                style: TextStyle(
+                  fontSize: 12,
+                  fontFamily: 'Inter',
+                  color: Colors.grey[600],
+                ),
+                textAlign: TextAlign.center,
+              );
+            },
+          ),
+          Text(
+            _version,
+            style: TextStyle(
+              fontSize: 12,
+              fontFamily: 'Inter',
+              color: Colors.grey[600],
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     );
   }
@@ -63,7 +82,7 @@ class MenuDrawer extends StatelessWidget {
   // Helper method to get color circle button
   Widget _buildColorButton(
       Color color, SettingsController settings, BuildContext context) {
-    bool isSelected = settings.seedColor.value == color.value;
+    bool isSelected = settings.seedColor.value == color.toARGB32();
 
     return InkWell(
       onTap: () {
@@ -97,16 +116,25 @@ class MenuDrawer extends StatelessWidget {
 
   // Helper to get color name
   String _getColorName(Color color) {
-    if (color.value == const Color.fromARGB(255, 255, 67, 104).value)
+    if (color.toARGB32() ==
+        const Color.fromARGB(255, 255, 67, 104).toARGB32()) {
       return 'Red';
-    if (color.value == const Color.fromARGB(255, 242, 209, 76).value)
+    }
+    if (color.toARGB32() ==
+        const Color.fromARGB(255, 242, 209, 76).toARGB32()) {
       return 'Yellow';
-    if (color.value == const Color.fromARGB(255, 193, 226, 59).value)
+    }
+    if (color.toARGB32() ==
+        const Color.fromARGB(255, 193, 226, 59).toARGB32()) {
       return 'Green';
-    if (color.value == const Color.fromARGB(255, 0, 136, 255).value)
+    }
+    if (color.toARGB32() == const Color.fromARGB(255, 0, 136, 255).toARGB32()) {
       return 'Blue';
-    if (color.value == const Color.fromARGB(255, 255, 87, 216).value)
+    }
+    if (color.toARGB32() ==
+        const Color.fromARGB(255, 255, 87, 216).toARGB32()) {
       return 'Purple';
+    }
     return 'Custom';
   }
 
@@ -172,7 +200,7 @@ class MenuDrawer extends StatelessWidget {
             // Drawer header
             Container(
               padding: const EdgeInsets.all(16.0),
-              color: Theme.of(context).primaryColor.withOpacity(0.1),
+              color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
               child: const Text(
                 'Menu',
                 style: TextStyle(
@@ -189,23 +217,7 @@ class MenuDrawer extends StatelessWidget {
                       money.isSubscribed() ? Icons.diamond : Icons.diamond),
                   title: money.isSubscribed()
                       ? Text('You own premium')
-                      : RichText(
-                          text: TextSpan(
-                            style: DefaultTextStyle.of(context).style,
-                            children: [
-                              const TextSpan(text: 'Premium ('),
-                              TextSpan(
-                                text: 'ads',
-                                style: TextStyle(
-                                    decoration: TextDecoration.lineThrough),
-                              ),
-                              TextSpan(
-                                text:
-                                    ') - ${money.subscriptionOption?.fullPricePhase?.price.formatted ?? ''}',
-                              ),
-                            ],
-                          ),
-                        ),
+                      : const Text('Premium (no ads)'),
                   onTap: money.isSubscribed()
                       ? null
                       : () {
@@ -215,25 +227,7 @@ class MenuDrawer extends StatelessWidget {
               },
             ),
 
-            ValueListenableBuilder<bool>(
-              valueListenable: settings.isBlockedExpanded,
-              builder: (context, isExpanded, child) {
-                return ExpansionTile(
-                  initiallyExpanded: isExpanded,
-                  onExpansionChanged: (bool expanded) {
-                    settings.isBlockedExpanded.value = expanded;
-                    settings.saveBlockedExpanded(expanded);
-                  },
-                  leading: const Icon(Icons.block),
-                  title: const Text('Blocked Players'),
-                  children: [
-                    _buildBlockedPlayersSection(context),
-                  ],
-                );
-              },
-            ),
 
-            // Sound toggle
 
             ValueListenableBuilder<bool>(
               valueListenable: settings.isColorsExpanded,
@@ -309,10 +303,26 @@ class MenuDrawer extends StatelessWidget {
               },
             ),
             */
-
+            ValueListenableBuilder<bool>(
+              valueListenable: settings.isBlockedExpanded,
+              builder: (context, isExpanded, child) {
+                return ExpansionTile(
+                  initiallyExpanded: isExpanded,
+                  onExpansionChanged: (bool expanded) {
+                    settings.isBlockedExpanded.value = expanded;
+                    settings.saveBlockedExpanded(expanded);
+                  },
+                  leading: const Icon(Icons.block),
+                  title: const Text('Blocked Players'),
+                  children: [
+                    _buildBlockedPlayersSection(context),
+                  ],
+                );
+              },
+            ),
             // Version display at the bottom
             const Divider(),
-            const VersionDisplay(),
+            const InfoDisplay(),
           ],
         ),
       ),

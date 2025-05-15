@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:math';
 
+import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/foundation.dart';
@@ -10,6 +11,7 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import 'package:logging/logging.dart';
 import 'package:operation_veritas/ads/ads_controller.dart';
+import 'package:operation_veritas/auth_services/auth_controller.dart';
 import 'package:operation_veritas/change_notifier/blocked_players.dart';
 import 'package:operation_veritas/change_notifier/banner_message_visibility.dart';
 import 'package:operation_veritas/change_notifier/money_controller.dart';
@@ -18,7 +20,6 @@ import 'package:operation_veritas/home_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'dart:developer' as dev;
-import 'persistence/settings_persistence.dart';
 import 'persistence/local_storage_settings_persistence.dart';
 import 'app_lifecycle/app_lifecycle.dart';
 import 'persistence/settings_controller.dart';
@@ -27,6 +28,7 @@ import 'package:firebase_core/firebase_core.dart';
 
 const revenueCatGoogleApiKey = "goog_KHFjwrHpqZqQHQJeIbeSgiBqRQc";
 
+/*
 void setupConnectionTracking() {
   final connectedRef = FirebaseDatabase.instance.ref(".info/connected");
   final playerCountRef = FirebaseDatabase.instance.ref("player_count");
@@ -45,9 +47,10 @@ void setupConnectionTracking() {
     }
   });
 }
+*/
 
 Future<void> initPlatformState() async {
-  await Purchases.setDebugLogsEnabled(true);
+  await Purchases.setLogLevel(LogLevel.debug);
   PurchasesConfiguration configuration;
   if (Platform.isAndroid) {
     configuration = PurchasesConfiguration("goog_KHFjwrHpqZqQHQJeIbeSgiBqRQc");
@@ -77,9 +80,26 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Firebase.initializeApp();
-  await FirebaseAuth.instance.signInAnonymously();
+  await FirebaseAppCheck.instance.activate(
+    // Default provider for Android is the Play Integrity provider. You can use the "AndroidProvider" enum to choose
+    // your preferred provider. Choose from:
+    // 1. Debug provider
+    // 2. Safety Net provider
+    // 3. Play Integrity provider
+    androidProvider: AndroidProvider.debug, //TODO: Change back to in production: AndroidProvider.playIntegrity,
+    // Default provider for iOS/macOS is the Device Check provider. You can use the "AppleProvider" enum to choose
+    // your preferred provider. Choose from:
+    // 1. Debug provider
+    // 2. Device Check provider
+    // 3. App Attest provider
+    // 4. App Attest provider with fallback to Device Check provider (App Attest provider is only available on iOS 14.0+, macOS 14.0+)
+    appleProvider: AppleProvider.appAttest,
+  );
+  final authController = AuthController();
+  authController.initialize();
+  //await FirebaseAuth.instance.signInAnonymously();
   await initPlatformState();
-  setupConnectionTracking();
+  //setupConnectionTracking();
 
   _log.info('Going full screen');
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
@@ -102,29 +122,25 @@ Future<void> main() async {
       settingsController: settingsController,
       adsController: adsController,
       moneyController: MoneyController(),
+      authController: authController,
     ),
   );
 }
 
 Logger _log = Logger('main.dart');
-//Color.fromARGB(255, 40, 0, 161)
-//Color.fromARGB(255, 255, 0, 187)
-//Color.fromARGB(255, 0, 255, 0)
-//Color.fromARGB(255, 0, 255, 255)
-//Color.fromARGB(255, 0, 0, 255)
-//Color.fromARGB(255, 255, 255, 0)
-//Color.fromARGB(255, 255, 0, 0)
 
 class MyApp extends StatelessWidget {
   final SettingsController settingsController;
   final AdsController? adsController;
   final MoneyController moneyController;
+  final AuthController authController;
 
   const MyApp({
     super.key,
     required this.settingsController,
     required this.adsController,
     required this.moneyController,
+    required this.authController,
   });
 
   @override
@@ -153,10 +169,14 @@ class MyApp extends StatelessWidget {
             create: (context) => moneyController,
           ),
           ChangeNotifierProvider(
+            create: (context) => authController,
+          ),
+          ChangeNotifierProvider(
             create: (context) => TriviaService(
                 adsController: adsController,
                 moneyController: moneyController,
-                settingsController: settingsController),
+                settingsController: settingsController,
+                authController: authController),
           ),
           ChangeNotifierProvider(
             create: (context) => BannerMessageVisibility(),
@@ -178,7 +198,7 @@ class MyApp extends StatelessWidget {
                 DeviceOrientation.portraitUp,
                 DeviceOrientation.portraitDown,
               ]);
-    
+
               final lightTheme = ThemeData(
                 scaffoldBackgroundColor: Colors.white,
                 useMaterial3: true,
@@ -209,7 +229,6 @@ class MyApp extends StatelessWidget {
                 darkTheme: darkTheme,
                 navigatorKey: navigatorKey, // Add navigator key here
                 home: HomeScreen(
-                  userColor: _generateRandomDarkerColor(),
                   navigatorKey: navigatorKey,
                 ),
               );
@@ -218,16 +237,5 @@ class MyApp extends StatelessWidget {
         },
       ),
     );
-  }
-
-  Color _generateRandomDarkerColor() {
-    Random random = Random();
-    // Generate random RGB values and adjust to ensure it's dark
-    int r =
-        random.nextInt(100) + 50; // Ensuring a darker value (50 to 150 range)
-    int g = random.nextInt(100) + 50;
-    int b = random.nextInt(100) + 50;
-
-    return Color.fromRGBO(r, g, b, 1);
   }
 }

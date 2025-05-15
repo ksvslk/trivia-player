@@ -29,6 +29,9 @@
             </intent-filter>
         </activity>
 
+        <meta-data android:name="com.google.android.gms.games.APP_ID"
+               android:value="@string/game_services_project_id"/>
+
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="ca-app-pub-5386053272091445~4546686416"/>
