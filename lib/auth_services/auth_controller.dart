@@ -19,10 +19,12 @@ class AuthController extends ChangeNotifier {
   AuthState _authState = AuthState.none;
   User? _currentUser;
   String _playerName = "";
+  bool _isGameServicesAvailable = false;
 
   AuthState get authState => _authState;
   User? get currentUser => _currentUser;
   String get playerName => _playerName;
+ bool get isLeaderboardAvailable => _isGameServicesAvailable;
 
   AuthController() {
     initialize();
@@ -32,8 +34,6 @@ class AuthController extends ChangeNotifier {
     _authState = AuthState.progress;
     notifyListeners();
     _log.info('Starting authentication process.');
-
-    bool gameServicesSuccess = false;
 
     _log.info('Attempting Game Services login...');
     try {
@@ -54,7 +54,7 @@ class AuthController extends ChangeNotifier {
           _currentUser = userCredential.user;
           _playerName = _currentUser?.displayName ?? "-";
           _authState = AuthState.authenticated;
-          gameServicesSuccess = true;
+          _isGameServicesAvailable = true;
         } else {
           _log.warning('Firebase signInWithCredential returned null user.');
         }
@@ -67,7 +67,7 @@ class AuthController extends ChangeNotifier {
       _log.warning('Game Services login failed: $e');
     }
 
-    if (!gameServicesSuccess) {
+    if (!_isGameServicesAvailable) {
       _log.info(
           'Game Services login failed. Falling back to anonymous login...');
       try {
@@ -113,6 +113,13 @@ class AuthController extends ChangeNotifier {
     }
   }
 
-  bool get isSignedIn =>
+  void showLeaderboard() async {
+    await Leaderboards.showLeaderboards(androidLeaderboardID: "", iOSLeaderboardID: "");
+  }
+
+  bool get isAuthenticated =>
       _authState == AuthState.authenticated && _currentUser != null;
+  
 }
+
+

@@ -210,6 +210,19 @@ class MenuDrawer extends StatelessWidget {
               ),
             ),
 
+            Consumer<AuthController>(
+              builder: (context, auth, child) {
+                if (!auth.isLeaderboardAvailable) return SizedBox.shrink();
+                return ListTile(
+                  leading: Icon(Icons.leaderboard),
+                  title: Text('Leaderboard'),
+                  onTap: () {
+                    auth.showLeaderboard();
+                  },
+                );
+              },
+            ),
+
             Consumer<MoneyController>(
               builder: (context, money, child) {
                 return ListTile(
@@ -226,8 +239,6 @@ class MenuDrawer extends StatelessWidget {
                 );
               },
             ),
-
-
 
             ValueListenableBuilder<bool>(
               valueListenable: settings.isColorsExpanded,
@@ -275,7 +286,23 @@ class MenuDrawer extends StatelessWidget {
                 );
               },
             ),
-
+            ValueListenableBuilder<bool>(
+              valueListenable: settings.isBlockedExpanded,
+              builder: (context, isExpanded, child) {
+                return ExpansionTile(
+                  initiallyExpanded: isExpanded,
+                  onExpansionChanged: (bool expanded) {
+                    settings.isBlockedExpanded.value = expanded;
+                    settings.saveBlockedExpanded(expanded);
+                  },
+                  leading: const Icon(Icons.block),
+                  title: const Text('Blocked Players'),
+                  children: [
+                    _buildBlockedPlayersSection(context),
+                  ],
+                );
+              },
+            ),
             ValueListenableBuilder<bool>(
               valueListenable: settings.soundsOn,
               builder: (context, soundsOn, child) {
@@ -303,23 +330,7 @@ class MenuDrawer extends StatelessWidget {
               },
             ),
             */
-            ValueListenableBuilder<bool>(
-              valueListenable: settings.isBlockedExpanded,
-              builder: (context, isExpanded, child) {
-                return ExpansionTile(
-                  initiallyExpanded: isExpanded,
-                  onExpansionChanged: (bool expanded) {
-                    settings.isBlockedExpanded.value = expanded;
-                    settings.saveBlockedExpanded(expanded);
-                  },
-                  leading: const Icon(Icons.block),
-                  title: const Text('Blocked Players'),
-                  children: [
-                    _buildBlockedPlayersSection(context),
-                  ],
-                );
-              },
-            ),
+
             // Version display at the bottom
             const Divider(),
             const InfoDisplay(),
