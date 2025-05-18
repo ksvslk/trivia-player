@@ -9,12 +9,14 @@ class MessageAvatar extends StatefulWidget {
   final Color? avatarColor;
   final Message message;
   final bool isCurrentUser;
+  final bool isWinnerMessage;
 
   const MessageAvatar(
       {super.key,
       required this.avatarColor,
       required this.message,
-      required this.isCurrentUser});
+      required this.isCurrentUser,
+      required this.isWinnerMessage});
 
   @override
   State<MessageAvatar> createState() => _MessageAvatarState();
@@ -74,31 +76,38 @@ class _MessageAvatarState extends State<MessageAvatar> {
                 },
           child: CircleAvatar(
             radius: 15,
-            backgroundColor: widget.avatarColor,
-            child: widget.message.isBot
-                ? ImageIcon(
-                    AssetImage(widget.message.messageType == 'question'
-                        ? "assets/images/avatar_question.png"
-                        : "assets/images/avatar_question.png"),
-                    color: widget.avatarColor?.contrastingTextColor,
+            backgroundColor:
+                widget.isWinnerMessage ? Colors.green : widget.avatarColor,
+            child: widget.isWinnerMessage
+                ? Icon(
+                    Icons.check_sharp,
+                    size: 18,
+                    color: Colors.white,
                   )
-                : (widget.message.photoUrl.isNotEmpty
-                    ? ClipOval(
-                        child: Image.network(
-                          widget.message.photoUrl,
-                          width: 30,
-                          height: 30,
-                          fit: BoxFit.cover,
-                        ),
+                : (widget.message.isBot
+                    ? ImageIcon(
+                        AssetImage(widget.message.messageType == 'question'
+                            ? "assets/images/avatar_question.png"
+                            : "assets/images/avatar_question.png"),
+                        color: widget.avatarColor?.contrastingTextColor,
                       )
-                    : Text(
-                        _getAvatarText(),
-                        style: TextStyle(
-                          fontFamily: 'WorkSans',
-                          fontSize: widget.message.isBot ? 18 : 16,
-                          color: widget.avatarColor?.contrastingTextColor,
-                        ),
-                      )),
+                    : (widget.message.photoUrl.isNotEmpty
+                        ? ClipOval(
+                            child: Image.network(
+                              widget.message.photoUrl,
+                              width: 30,
+                              height: 30,
+                              fit: BoxFit.cover,
+                            ),
+                          )
+                        : Text(
+                            _getAvatarText(),
+                            style: TextStyle(
+                              fontFamily: 'Inter',
+                              fontSize: widget.message.isBot ? 18 : 16,
+                              color: widget.avatarColor?.contrastingTextColor,
+                            ),
+                          ))),
           ),
         );
       },

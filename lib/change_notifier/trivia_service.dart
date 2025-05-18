@@ -1,6 +1,7 @@
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:operation_veritas/ads/ads_controller.dart';
 import 'package:operation_veritas/auth_services/auth_controller.dart';
 import 'package:operation_veritas/change_notifier/money_controller.dart';
@@ -84,8 +85,11 @@ class TriviaService extends ChangeNotifier {
           questionStartTime: message['questionStartTime'] ?? -1,
           questionEndTime: message['questionEndTime'] ?? -1,
           serverTime: message['serverTime'] ?? -1,
-          photoUrl: message['photoUrl'] ?? ''
+          photoUrl: message['photoUrl'] ?? '',
+          questionWinnerUid: message['questionWinnerUid'] ?? '',
+          correctAnswerId: message['correctAnswerId'] ?? '',
       );
+      print("questionWinnerUid: ${newMessage.questionWinnerUid}");
       if (newMessage.messageType == "question") {
         _activeQuestion = newMessage;
       } else if (newMessage.messageType == "round_end" ||
@@ -93,11 +97,18 @@ class TriviaService extends ChangeNotifier {
         showAdWhenNeeded(newMessage);
         _activeQuestion = null;
       }
+      handleEffects(newMessage.questionWinnerUid);
       _lastMessage = newMessage;
       _messages.add(newMessage);
       notifyListeners();
     } catch (e) {
       debugPrint('Error parsing message: $e');
+    }
+  }
+
+  void handleEffects(String questionWinnerUid) async {
+    if (questionWinnerUid == authController?.currentUser?.uid) {
+      await HapticFeedback.heavyImpact();
     }
   }
 
@@ -127,7 +138,7 @@ class TriviaService extends ChangeNotifier {
         'text': text,
         'isBot': false,
         'timestamp': ServerValue.timestamp,
-        'photoUrl': authController?.currentUser?.photoURL ?? ''
+        'photoUrl': authController?.currentUser?.photoURL ?? '',
       });
     } catch (e) {
       debugPrint('Failed to send message: $e');

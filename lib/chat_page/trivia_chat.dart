@@ -52,9 +52,11 @@ class _TriviaChatState extends State<TriviaChat> {
   Widget build(BuildContext context) {
     return Consumer<TriviaService>(
       builder: (context, triviaService, child) {
+
         // Check if we need to scroll when messages change
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (triviaService.currentUserId == triviaService.messages.lastOrNull?.playerUid) {
+          if (triviaService.currentUserId ==
+              triviaService.messages.lastOrNull?.playerUid) {
             _scrollController.animateTo(
               _scrollController.position.minScrollExtent,
               duration: const Duration(milliseconds: 250),
@@ -64,77 +66,84 @@ class _TriviaChatState extends State<TriviaChat> {
         });
 
         // Check if we need to show loading state
-        final bool isLoading = triviaService.isLoading || 
-                               triviaService.messages.isEmpty || 
-                               !triviaService.connected;
+        final bool isLoading = triviaService.isLoading ||
+            triviaService.messages.isEmpty ||
+            !triviaService.connected;
 
         return SafeArea(
           child: Scaffold(
             body: isLoading
-              // Show loading indicator when data is not ready
-              ? const Center(child: Text('Loading messages...'))
-              // Show full chat UI when data is ready
-              : Column(
-                  children: [
-                    // Question banner
-                    Consumer<BannerMessageVisibility>(
-                      builder: (context, visibility, child) {
-                        final colorScheme = Theme.of(context).colorScheme;
-                        return Visibility(
-                          visible: !visibility.isQuestionVisibleOnScreen() &&
-                              triviaService.getActiveQuestion != null,
-                          maintainSize: false,
-                          maintainAnimation: false,
-                          maintainState: false,
-                          child: Container(
-                            width: double.infinity,
-                            key: ValueKey<String>('active-question-banner'),
-                            color: colorScheme.surfaceContainerLow,
-                            padding: EdgeInsets.all(8.0),
-                            child: Text(
-                              triviaService.getActiveQuestion != null
-                                  ? triviaService.getActiveQuestion!.text
-                                  : '',
-                              style: TextStyle(
-                                color: colorScheme.onSurface,
-                                fontFamily: 'Inter',
-                                fontSize: 13,
+                // Show loading indicator when data is not ready
+                ? const Center(
+                    child: Text(
+                    'Loading messages...',
+                    style: TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 12,
+                    ),
+                  ))
+                // Show full chat UI when data is ready
+                : Column(
+                    children: [      // Question banner
+                      Consumer<BannerMessageVisibility>(
+                        builder: (context, visibility, child) {
+                          final colorScheme = Theme.of(context).colorScheme;
+                          return Visibility(
+                            visible: !visibility.isQuestionVisibleOnScreen() &&
+                                triviaService.getActiveQuestion != null,
+                            maintainSize: false,
+                            maintainAnimation: false,
+                            maintainState: false,
+                            child: Container(
+                              width: double.infinity,
+                              key: ValueKey<String>('active-question-banner'),
+                              color: colorScheme.surfaceContainerLow,
+                              padding: EdgeInsets.all(8.0),
+                              child: Text(
+                                triviaService.getActiveQuestion != null
+                                    ? triviaService.getActiveQuestion!.text
+                                    : '',
+                                style: TextStyle(
+                                  color: colorScheme.onSurface,
+                                  fontFamily: 'Inter',
+                                  fontSize: 13,
+                                ),
                               ),
                             ),
-                          ),
-                        );
-                      },
-                    ),
-                    
-                    // Question time progress
-                    if (triviaService.getActiveQuestion != null &&
-                        triviaService.getActiveQuestion!.messageType == 'question')
-                      QuestionTimeProgress(message: triviaService.getActiveQuestion!),
-                    
-                    // Messages list
-                    Expanded(
-                      child: MessageListView(
-                        originalMessages: triviaService.messages,
-                        scrollController: _scrollController,
-                        currentUserId: triviaService.currentUserId,
-                        formatTimestamp: triviaService.formatTimestamp,
-                        activeQuestion: triviaService.getActiveQuestion
+                          );
+                        },
                       ),
-                    ),
-                    
-                    // Message input
-                    MessageInput(
-                      controller: _controller,
-                      onSend: () {
-                        if (_controller.text.isNotEmpty) {
-                          // Optionally play sound effect
-                          // audioController.playSfx(SfxType.rotate);
-                          _sendMessage(triviaService);
-                        }
-                      },
-                    ),
-                  ],
-                ),
+
+                      // Question time progress
+                      if (triviaService.getActiveQuestion != null &&
+                          triviaService.getActiveQuestion!.messageType ==
+                              'question')
+                        QuestionTimeProgress(
+                            message: triviaService.getActiveQuestion!),
+
+                      // Messages list
+                      Expanded(
+                        child: MessageListView(
+                            originalMessages: triviaService.messages,
+                            scrollController: _scrollController,
+                            currentUserId: triviaService.currentUserId,
+                            formatTimestamp: triviaService.formatTimestamp,
+                            activeQuestion: triviaService.getActiveQuestion),
+                      ),
+
+                      // Message input
+                      MessageInput(
+                        controller: _controller,
+                        onSend: () {
+                          if (_controller.text.isNotEmpty) {
+                            // Optionally play sound effect
+                            // audioController.playSfx(SfxType.rotate);
+                            _sendMessage(triviaService);
+                          }
+                        },
+                      ),
+                    ],
+                  ),
           ),
         );
       },

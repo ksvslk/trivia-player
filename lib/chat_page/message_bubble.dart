@@ -23,11 +23,11 @@ class MessageBubble extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    final lastMessageWasSameUser = 
-      (message.isBot && messageBefore.isBot) ||
-      (message.playerUid == messageBefore.playerUid);
+    final lastMessageWasSameUser = (message.isBot && messageBefore.isBot) ||
+        (message.playerUid == messageBefore.playerUid);
     return Padding(
-      padding: EdgeInsets.fromLTRB(16.0, lastMessageWasSameUser ? 1.0 : 4.0, 16.0, 1.0),
+      padding: EdgeInsets.fromLTRB(
+          16.0, lastMessageWasSameUser ? 1.0 : 4.0, 16.0, 1.0),
       child: Row(
         mainAxisAlignment:
             isCurrentUser ? MainAxisAlignment.end : MainAxisAlignment.start,
@@ -41,18 +41,24 @@ class MessageBubble extends StatelessWidget {
 
   List<Widget> _buildMessageWithAvatar(ColorScheme colorScheme) {
     // Determine text colors based on message type
-    final textColor = message.isBot
+    final textColor = (message.messageType == 'answer' &&
+            message.questionWinnerUid == playerId)
         ? colorScheme.onSurface
-        : (isCurrentUser
-            ? colorScheme.onPrimaryContainer
-            : colorScheme.onSurface);
+        : (message.isBot
+            ? colorScheme.onSurface
+            : (isCurrentUser
+                ? colorScheme.onPrimaryContainer
+                : colorScheme.onSurface));
 
     // Determine bubble background color
-    final bubbleColor = message.isBot
-        ? colorScheme.surfaceContainerHigh
-        : (isCurrentUser
-            ? colorScheme.primaryContainer
-            : colorScheme.surfaceContainerLow);
+    final bubbleColor = (message.messageType == 'answer' &&
+            message.questionWinnerUid == playerId)
+        ? colorScheme.surfaceContainerLow
+        : (message.isBot
+            ? colorScheme.surfaceContainerHigh
+            : (isCurrentUser
+                ? colorScheme.primaryContainer
+                : colorScheme.surfaceContainerLow));
 
     // Determine avatar color
     final avatarColor = message.isBot
@@ -91,7 +97,12 @@ class MessageBubble extends StatelessWidget {
         ),
       ),
       const SizedBox(width: 4),
-      MessageAvatar(message: message, avatarColor: avatarColor, isCurrentUser: isCurrentUser)
+      MessageAvatar(
+          message: message,
+          avatarColor: avatarColor,
+          isCurrentUser: isCurrentUser,
+          isWinnerMessage: message.questionWinnerUid == playerId &&
+              message.questionWinnerUid.isNotEmpty)
     ];
   }
 
@@ -128,9 +139,12 @@ class MessageBubble extends StatelessWidget {
             : (message.badgeText.isEmpty ? 'Host' : ""),
         style: TextStyle(
           fontSize: 10,
-          color: isCurrentUser
-              ? colorScheme.onPrimaryContainer.withValues(alpha: 0.3)
-              : colorScheme.onSurface.withValues(alpha: 0.3),
+          color: (message.messageType == 'answer' &&
+                  message.questionWinnerUid == playerId)
+              ? colorScheme.onSurfaceVariant.withValues(alpha: 0.3)
+              : isCurrentUser
+                  ? colorScheme.onPrimaryContainer.withValues(alpha: 0.3)
+                  : colorScheme.onSurface.withValues(alpha: 0.3),
         ),
       );
     }
