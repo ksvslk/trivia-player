@@ -25,6 +25,8 @@ import 'app_lifecycle/app_lifecycle.dart';
 import 'persistence/settings_controller.dart';
 import 'audio/audio_controller.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 const revenueCatGoogleApiKey = "goog_KHFjwrHpqZqQHQJeIbeSgiBqRQc";
 
@@ -86,7 +88,8 @@ Future<void> main() async {
     // 1. Debug provider
     // 2. Safety Net provider
     // 3. Play Integrity provider
-    androidProvider: AndroidProvider.debug, //TODO: Change back to in production: AndroidProvider.playIntegrity,
+    androidProvider: AndroidProvider
+        .debug, //TODO: Change back to in production: AndroidProvider.playIntegrity,
     // Default provider for iOS/macOS is the Device Check provider. You can use the "AppleProvider" enum to choose
     // your preferred provider. Choose from:
     // 1. Debug provider
@@ -224,10 +227,25 @@ class MyApp extends StatelessWidget {
 
               return MaterialApp(
                 title: 'Trivia Chat',
+                localizationsDelegates: [
+                  AppLocalizations.delegate,
+                  GlobalMaterialLocalizations.delegate,
+                  GlobalWidgetsLocalizations.delegate,
+                  GlobalCupertinoLocalizations.delegate,
+                ],
+                supportedLocales: [
+                  Locale('en'),
+                  Locale('fr'),
+                  Locale('it'),
+                  Locale('de'),
+                  Locale('es'),
+                  Locale('et'),
+                ],
                 debugShowCheckedModeBanner: false,
                 theme: lightTheme,
                 darkTheme: darkTheme,
                 navigatorKey: navigatorKey, // Add navigator key here
+
                 home: HomeScreen(
                   navigatorKey: navigatorKey,
                 ),

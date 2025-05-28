@@ -1,0 +1,8 @@
+{
+  "@@locale": "it",
+  "appTitle": "Trivia Player",
+  "@appTitle": {
+    "description": "Chat trivia dal vivo"
+  },
+  "loading": "Caricamento del gioco..."
+}

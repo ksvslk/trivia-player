@@ -1,0 +1,8 @@
+{
+  "@@locale": "et",
+  "appTitle": "Trivia Player",
+  "@appTitle": {
+    "description": "Otsesed viktoriini vestlused"
+  },
+  "loading": "Mängu laadimine..."
+}

@@ -76,7 +76,7 @@ class _TriviaChatState extends State<TriviaChat> {
                 // Show loading indicator when data is not ready
                 ? const Center(
                     child: Text(
-                    'Loading messages...',
+                    'Loading game...',
                     style: TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 12,

@@ -26,6 +26,9 @@ dependencies:
   google_mobile_ads: ^6.0.0
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  intl: any
   games_services: ^4.1.1
   web_socket_channel: ^3.0.1
   visibility_detector: ^0.4.0+2
@@ -41,6 +44,7 @@ flutter:
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
+  generate: true
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
