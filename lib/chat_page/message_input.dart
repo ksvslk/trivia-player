@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:operation_veritas/l10n/app_localizations.dart';
 
 class MessageInput extends StatefulWidget {
   final TextEditingController controller;
@@ -34,6 +35,7 @@ class MessageInputState extends State<MessageInput> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final local = AppLocalizations.of(context)!;
 
     return Container(
       color: colorScheme.surface,
@@ -52,7 +54,7 @@ class MessageInputState extends State<MessageInput> {
                 filled: true,
                 fillColor:
                     Theme.of(context).colorScheme.surfaceContainerHighest,
-                hintText: 'Type your answer...',
+                hintText: '${local.typeYourAnswer}...',
                 counterText: "",
                 isDense: true,
                 border: const OutlineInputBorder(),

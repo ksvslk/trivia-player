@@ -5,6 +5,7 @@ import 'package:operation_veritas/chat_page/message_list_view.dart';
 import 'package:operation_veritas/chat_page/question_time_progress.dart';
 import 'package:operation_veritas/change_notifier/banner_message_visibility.dart';
 import 'package:operation_veritas/change_notifier/trivia_service.dart';
+import 'package:operation_veritas/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 
 class TriviaChat extends StatefulWidget {
@@ -32,7 +33,7 @@ class _TriviaChatState extends State<TriviaChat> {
     super.dispose();
   }
 
-  Future<void> _sendMessage(TriviaService triviaService) async {
+  Future<void> _sendMessage(TriviaService triviaService, AppLocalizations local) async {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
 
@@ -42,7 +43,7 @@ class _TriviaChatState extends State<TriviaChat> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to send message: $e')),
+          SnackBar(content: Text('${local.failedToSend}: $e')),
         );
       }
     }
@@ -50,6 +51,8 @@ class _TriviaChatState extends State<TriviaChat> {
 
   @override
   Widget build(BuildContext context) {
+    final local = AppLocalizations.of(context)!;
+
     return Consumer<TriviaService>(
       builder: (context, triviaService, child) {
 
@@ -74,10 +77,10 @@ class _TriviaChatState extends State<TriviaChat> {
           child: Scaffold(
             body: isLoading
                 // Show loading indicator when data is not ready
-                ? const Center(
+                ? Center(
                     child: Text(
-                    'Loading game...',
-                    style: TextStyle(
+                      AppLocalizations.of(context)!.loading,
+                    style: const TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 12,
                     ),
@@ -138,7 +141,7 @@ class _TriviaChatState extends State<TriviaChat> {
                           if (_controller.text.isNotEmpty) {
                             // Optionally play sound effect
                             // audioController.playSfx(SfxType.rotate);
-                            _sendMessage(triviaService);
+                            _sendMessage(triviaService, local);
                           }
                         },
                       ),

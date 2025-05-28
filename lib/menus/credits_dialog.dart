@@ -1,13 +1,17 @@
 
 import 'package:flutter/material.dart';
+import 'package:operation_veritas/l10n/app_localizations.dart';
 
 class CreditsDialog extends StatelessWidget {
   const CreditsDialog({super.key});
 
   @override
   Widget build(BuildContext context) {
+
+    final local = AppLocalizations.of(context)!;
+
     return AlertDialog(
-      title: Text('Credits'),
+      title: Text(local.credits),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -19,7 +23,7 @@ class CreditsDialog extends StatelessWidget {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: Text('Close'),
+          child: Text(local.close),
         ),
       ],
     );

@@ -5,6 +5,7 @@ import 'package:operation_veritas/auth_services/auth_controller.dart';
 import 'package:operation_veritas/change_notifier/banner_message_visibility.dart';
 import 'package:operation_veritas/change_notifier/money_controller.dart';
 import 'package:operation_veritas/chat_page/trivia_chat.dart';
+import 'package:operation_veritas/l10n/app_localizations.dart';
 import 'package:operation_veritas/menus/menu_drawer.dart';
 import 'package:operation_veritas/persistence/settings_controller.dart';
 import 'package:provider/provider.dart';
@@ -30,6 +31,8 @@ class HomeScreen extends StatelessWidget {
         systemNavigationBarIconBrightness: brightness,
         statusBarIconBrightness: brightness));
 
+    final local = AppLocalizations.of(context)!;
+    
     return Scaffold(
       drawer: MenuDrawer(parentNavigatorKey: navigatorKey),
       body: Stack(
@@ -43,7 +46,7 @@ class HomeScreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'Failed to authenticate :(',
+                      local.failedToAuth,
                       textAlign: TextAlign.center,
                       style: TextStyle(
                           fontSize: 14,
@@ -55,7 +58,7 @@ class HomeScreen extends StatelessWidget {
                       onPressed: () {
                         auth.initialize();
                       },
-                      child: const Text('Try again'),
+                      child: Text(local.tryAgain),
                     ),
                   ],
                 ),

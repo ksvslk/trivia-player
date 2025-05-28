@@ -13,4 +13,88 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get loading => 'Caricamento del gioco...';
+
+  @override
+  String get player => 'Giocatore';
+
+  @override
+  String get failedToAuth => 'Autenticazione fallita :(';
+
+  @override
+  String get tryAgain => 'Riprova';
+
+  @override
+  String get credits => 'Crediti';
+
+  @override
+  String get close => 'Chiudi';
+
+  @override
+  String get noBlockedPlayers => 'Nessun giocatore è attualmente bloccato.';
+
+  @override
+  String get menu => 'Menu';
+
+  @override
+  String get leaderboard => 'Classifica';
+
+  @override
+  String get youOwnPremium => 'Possiedi la versione premium';
+
+  @override
+  String get premiumInfo => 'Premium (senza pubblicità)';
+
+  @override
+  String get theme => 'Tema';
+
+  @override
+  String get blockedPlayers => 'Giocatori bloccati';
+
+  @override
+  String get sound => 'Suono';
+
+  @override
+  String get block => 'Blocca';
+
+  @override
+  String get shareConcerns => 'Condividi le tue preoccupazioni riguardo';
+
+  @override
+  String get blowTheWhistle => 'Suona il fischietto';
+
+  @override
+  String get host => 'Host';
+
+  @override
+  String get typeYourAnswer => 'Digita la tua risposta...';
+
+  @override
+  String get failedToSend => 'Invio del messaggio fallito';
+
+  @override
+  String get continuePlaying => 'Continua a giocare';
+
+  @override
+  String get watchRewardedAd => 'Guarda pubblicità premiata';
+
+  @override
+  String get subscribeToPremium => 'Abbonati a Premium';
+
+  @override
+  String get unlimitedGameplay => 'Gioco illimitato';
+
+  @override
+  String get playWithoutPauses => 'Gioca senza pause';
+
+  @override
+  String get competitiveEdge => 'Vantaggio competitivo';
+
+  @override
+  String get lockedUntil => 'Bloccato fino a';
+
+  @override
+  String get version => 'Versione';
+
+  @override
+  String get versionLoading => 'Caricamento';
 }

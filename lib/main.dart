@@ -17,6 +17,7 @@ import 'package:operation_veritas/change_notifier/banner_message_visibility.dart
 import 'package:operation_veritas/change_notifier/money_controller.dart';
 import 'package:operation_veritas/change_notifier/trivia_service.dart';
 import 'package:operation_veritas/home_screen.dart';
+import 'package:operation_veritas/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'dart:developer' as dev;
@@ -26,7 +27,6 @@ import 'persistence/settings_controller.dart';
 import 'audio/audio_controller.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 const revenueCatGoogleApiKey = "goog_KHFjwrHpqZqQHQJeIbeSgiBqRQc";
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:operation_veritas/chat_page/message.dart';
 import 'package:operation_veritas/chat_page/message_avatar.dart';
 import 'package:operation_veritas/extensions.dart';
+import 'package:operation_veritas/l10n/app_localizations.dart';
 
 class MessageBubble extends StatelessWidget {
   final Message message;
@@ -22,6 +23,7 @@ class MessageBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final local = AppLocalizations.of(context)!;
 
     final lastMessageWasSameUser = (message.isBot && messageBefore.isBot) ||
         (message.playerUid == messageBefore.playerUid);
@@ -33,13 +35,13 @@ class MessageBubble extends StatelessWidget {
             isCurrentUser ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: isCurrentUser
-            ? _buildMessageWithAvatar(colorScheme)
-            : _buildMessageWithAvatar(colorScheme).reversed.toList(),
+            ? _buildMessageWithAvatar(colorScheme, local)
+            : _buildMessageWithAvatar(colorScheme, local).reversed.toList(),
       ),
     );
   }
 
-  List<Widget> _buildMessageWithAvatar(ColorScheme colorScheme) {
+  List<Widget> _buildMessageWithAvatar(ColorScheme colorScheme, AppLocalizations local) {
     // Determine text colors based on message type
     final textColor = (message.messageType == 'answer' &&
             message.questionWinnerUid == playerId)
@@ -91,7 +93,7 @@ class MessageBubble extends StatelessWidget {
                   color: textColor,
                 ),
               ),
-              _buildBottomContent(colorScheme),
+              _buildBottomContent(colorScheme, local),
             ],
           ),
         ),
@@ -107,7 +109,7 @@ class MessageBubble extends StatelessWidget {
   }
 
   // Helper method to build the bottom content (badge or name)
-  Widget _buildBottomContent(ColorScheme colorScheme) {
+  Widget _buildBottomContent(ColorScheme colorScheme, AppLocalizations local) {
     if (message.isBot && message.badgeText.isNotEmpty) {
       // Badge for bot messages
       return Container(
@@ -136,7 +138,7 @@ class MessageBubble extends StatelessWidget {
       return Text(
         !message.isBot
             ? message.name
-            : (message.badgeText.isEmpty ? 'Host' : ""),
+            : (message.badgeText.isEmpty ? local.host : ""),
         style: TextStyle(
           fontSize: 10,
           color: (message.messageType == 'answer' &&

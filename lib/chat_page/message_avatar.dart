@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:operation_veritas/change_notifier/blocked_players.dart';
 import 'package:operation_veritas/chat_page/message.dart';
 import 'package:operation_veritas/extensions.dart';
+import 'package:operation_veritas/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -33,6 +34,7 @@ class _MessageAvatarState extends State<MessageAvatar> {
 
   @override
   Widget build(BuildContext context) {
+    final local = AppLocalizations.of(context)!;
     final blockedPlayers = context.read<BlockedPlayers>();
 
     return MenuAnchor(
@@ -44,7 +46,7 @@ class _MessageAvatarState extends State<MessageAvatar> {
             onPressed: () {
               blockedPlayers.add(widget.message.playerUid, widget.message.name);
             },
-            child: const Text('Block')),
+            child: Text(local.block)),
         MenuItemButton(
           onPressed: () async {
             final subject =
@@ -53,13 +55,13 @@ class _MessageAvatarState extends State<MessageAvatar> {
               scheme: 'mailto',
               path: 'indrek@indest.ee',
               query:
-                  'subject=$subject&body=Share your concerns about ${widget.message.name} below.',
+                  'subject=$subject&body=${local.shareConcerns}: ${widget.message.name}.',
             );
             if (await canLaunchUrl(emailUri)) {
               await launchUrl(emailUri);
             } else {}
           },
-          child: const Text('Blow the whistle'),
+          child: Text(local.blowTheWhistle),
         )
       ],
       builder: (_, MenuController controller, Widget? child) {

@@ -66,7 +66,8 @@ import 'app_localizations_it.dart';
 /// be consistent with the languages listed in the AppLocalizations.supportedLocales
 /// property.
 abstract class AppLocalizations {
-  AppLocalizations(String locale) : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+  AppLocalizations(String locale)
+    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -74,7 +75,8 @@ abstract class AppLocalizations {
     return Localizations.of<AppLocalizations>(context, AppLocalizations);
   }
 
-  static const LocalizationsDelegate<AppLocalizations> delegate = _AppLocalizationsDelegate();
+  static const LocalizationsDelegate<AppLocalizations> delegate =
+      _AppLocalizationsDelegate();
 
   /// A list of this localizations delegate along with the default localizations
   /// delegates.
@@ -86,12 +88,13 @@ abstract class AppLocalizations {
   /// Additional delegates can be added by appending to this list in
   /// MaterialApp. This list does not have to be used at all if a custom list
   /// of delegates is preferred or required.
-  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates = <LocalizationsDelegate<dynamic>>[
-    delegate,
-    GlobalMaterialLocalizations.delegate,
-    GlobalCupertinoLocalizations.delegate,
-    GlobalWidgetsLocalizations.delegate,
-  ];
+  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
+      <LocalizationsDelegate<dynamic>>[
+        delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ];
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
@@ -100,7 +103,7 @@ abstract class AppLocalizations {
     Locale('es'),
     Locale('et'),
     Locale('fr'),
-    Locale('it')
+    Locale('it'),
   ];
 
   /// Live trivia chat
@@ -114,9 +117,178 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Loading game...'**
   String get loading;
+
+  /// No description provided for @player.
+  ///
+  /// In en, this message translates to:
+  /// **'Player'**
+  String get player;
+
+  /// No description provided for @failedToAuth.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to authenticate :('**
+  String get failedToAuth;
+
+  /// No description provided for @tryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get tryAgain;
+
+  /// No description provided for @credits.
+  ///
+  /// In en, this message translates to:
+  /// **'Credits'**
+  String get credits;
+
+  /// No description provided for @close.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get close;
+
+  /// No description provided for @noBlockedPlayers.
+  ///
+  /// In en, this message translates to:
+  /// **'No players are currently blocked.'**
+  String get noBlockedPlayers;
+
+  /// No description provided for @menu.
+  ///
+  /// In en, this message translates to:
+  /// **'Menu'**
+  String get menu;
+
+  /// No description provided for @leaderboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Leaderboard'**
+  String get leaderboard;
+
+  /// No description provided for @youOwnPremium.
+  ///
+  /// In en, this message translates to:
+  /// **'You own premium'**
+  String get youOwnPremium;
+
+  /// No description provided for @premiumInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Premium (no ads)'**
+  String get premiumInfo;
+
+  /// No description provided for @theme.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme'**
+  String get theme;
+
+  /// No description provided for @blockedPlayers.
+  ///
+  /// In en, this message translates to:
+  /// **'Blocked Players'**
+  String get blockedPlayers;
+
+  /// No description provided for @sound.
+  ///
+  /// In en, this message translates to:
+  /// **'Sound'**
+  String get sound;
+
+  /// No description provided for @block.
+  ///
+  /// In en, this message translates to:
+  /// **'Block'**
+  String get block;
+
+  /// No description provided for @shareConcerns.
+  ///
+  /// In en, this message translates to:
+  /// **'Share your concerns about'**
+  String get shareConcerns;
+
+  /// No description provided for @blowTheWhistle.
+  ///
+  /// In en, this message translates to:
+  /// **'Blow the whistle'**
+  String get blowTheWhistle;
+
+  /// No description provided for @host.
+  ///
+  /// In en, this message translates to:
+  /// **'Host'**
+  String get host;
+
+  /// No description provided for @typeYourAnswer.
+  ///
+  /// In en, this message translates to:
+  /// **'Type your answer...'**
+  String get typeYourAnswer;
+
+  /// No description provided for @failedToSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to send message'**
+  String get failedToSend;
+
+  /// No description provided for @continuePlaying.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue playing'**
+  String get continuePlaying;
+
+  /// No description provided for @watchRewardedAd.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch Rewarded Ad'**
+  String get watchRewardedAd;
+
+  /// No description provided for @subscribeToPremium.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscribe to Premium'**
+  String get subscribeToPremium;
+
+  /// No description provided for @unlimitedGameplay.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlimited gameplay'**
+  String get unlimitedGameplay;
+
+  /// No description provided for @playWithoutPauses.
+  ///
+  /// In en, this message translates to:
+  /// **'Play without pauses'**
+  String get playWithoutPauses;
+
+  /// No description provided for @competitiveEdge.
+  ///
+  /// In en, this message translates to:
+  /// **'Competitive edge'**
+  String get competitiveEdge;
+
+  /// No description provided for @lockedUntil.
+  ///
+  /// In en, this message translates to:
+  /// **'Locked until'**
+  String get lockedUntil;
+
+  /// No description provided for @version.
+  ///
+  /// In en, this message translates to:
+  /// **'Version'**
+  String get version;
+
+  /// No description provided for @versionLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading'**
+  String get versionLoading;
 }
 
-class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
+class _AppLocalizationsDelegate
+    extends LocalizationsDelegate<AppLocalizations> {
   const _AppLocalizationsDelegate();
 
   @override
@@ -125,29 +297,40 @@ class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> 
   }
 
   @override
-  bool isSupported(Locale locale) => <String>['de', 'en', 'es', 'et', 'fr', 'it'].contains(locale.languageCode);
+  bool isSupported(Locale locale) => <String>[
+    'de',
+    'en',
+    'es',
+    'et',
+    'fr',
+    'it',
+  ].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
 }
 
 AppLocalizations lookupAppLocalizations(Locale locale) {
-
-
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
-    case 'de': return AppLocalizationsDe();
-    case 'en': return AppLocalizationsEn();
-    case 'es': return AppLocalizationsEs();
-    case 'et': return AppLocalizationsEt();
-    case 'fr': return AppLocalizationsFr();
-    case 'it': return AppLocalizationsIt();
+    case 'de':
+      return AppLocalizationsDe();
+    case 'en':
+      return AppLocalizationsEn();
+    case 'es':
+      return AppLocalizationsEs();
+    case 'et':
+      return AppLocalizationsEt();
+    case 'fr':
+      return AppLocalizationsFr();
+    case 'it':
+      return AppLocalizationsIt();
   }
 
   throw FlutterError(
     'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
     'an issue with the localizations generation tool. Please file an issue '
     'on GitHub with a reproducible sample app and the gen-l10n configuration '
-    'that was used.'
+    'that was used.',
   );
 }

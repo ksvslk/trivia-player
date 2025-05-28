@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:operation_veritas/auth_services/auth_controller.dart';
 import 'package:operation_veritas/change_notifier/money_controller.dart';
 import 'package:operation_veritas/change_notifier/blocked_players.dart';
+import 'package:operation_veritas/l10n/app_localizations.dart';
 import 'package:operation_veritas/persistence/settings_controller.dart';
 import 'package:provider/provider.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -31,13 +32,15 @@ class _InfoDisplayState extends State<InfoDisplay> {
     if (mounted) {
       setState(() {
         _version =
-            'Version: ${packageInfo.version} (${packageInfo.buildNumber})';
+            '${AppLocalizations.of(context)!.versionLoading}: ${packageInfo.version} (${packageInfo.buildNumber})';
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final local = AppLocalizations.of(context)!;
+
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -46,7 +49,7 @@ class _InfoDisplayState extends State<InfoDisplay> {
           Consumer<AuthController>(
             builder: (context, auth, child) {
               return Text(
-                "Player: ${auth.playerName}",
+                "${local.player}: ${auth.playerName}",
                 style: TextStyle(
                   fontSize: 12,
                   fontFamily: 'Inter',
@@ -140,13 +143,16 @@ class MenuDrawer extends StatelessWidget {
 
   // Helper to build blocked player list
   Widget _buildBlockedPlayersSection(BuildContext context) {
+
+    final local = AppLocalizations.of(context)!;
+
     return Consumer<BlockedPlayers>(
       builder: (context, blockedPlayers, child) {
         if (blockedPlayers.blockedPlayers.isEmpty) {
-          return const Padding(
+          return Padding(
             padding: EdgeInsets.all(16.0),
             child: Text(
-              'No players are currently blocked.',
+              local.noBlockedPlayers,
               style: TextStyle(
                 fontStyle: FontStyle.italic,
                 color: Colors.grey,
@@ -162,7 +168,7 @@ class MenuDrawer extends StatelessWidget {
           itemCount: blockedPlayers.blockedPlayers.length,
           itemBuilder: (context, index) {
             String uid = blockedPlayers.blockedPlayers.keys.elementAt(index);
-            String name = blockedPlayers.blockedPlayers[uid] ?? "Player";
+            String name = blockedPlayers.blockedPlayers[uid] ?? local.player;
 
             return ListTile(
               dense: true,
@@ -191,6 +197,7 @@ class MenuDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final settings = Provider.of<SettingsController>(context, listen: false);
+    final local = AppLocalizations.of(context)!;
 
     return Drawer(
       child: SafeArea(
@@ -201,8 +208,8 @@ class MenuDrawer extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16.0),
               color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-              child: const Text(
-                'Menu',
+              child: Text(
+                local.menu,
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -215,7 +222,7 @@ class MenuDrawer extends StatelessWidget {
                 if (!auth.isLeaderboardAvailable) return SizedBox.shrink();
                 return ListTile(
                   leading: Icon(Icons.leaderboard),
-                  title: Text('Leaderboard'),
+                  title: Text(local.leaderboard),
                   onTap: () {
                     auth.showLeaderboard();
                   },
@@ -229,8 +236,8 @@ class MenuDrawer extends StatelessWidget {
                   leading: Icon(
                       money.isSubscribed() ? Icons.diamond : Icons.diamond),
                   title: money.isSubscribed()
-                      ? Text('You own premium')
-                      : const Text('Premium (no ads)'),
+                      ? Text(local.youOwnPremium)
+                      : Text(local.premiumInfo),
                   onTap: money.isSubscribed()
                       ? null
                       : () {
@@ -251,7 +258,7 @@ class MenuDrawer extends StatelessWidget {
                   },
                   maintainState: true,
                   leading: const Icon(Icons.color_lens),
-                  title: const Text('Theme'),
+                  title: Text(local.theme),
                   children: [
                     ValueListenableBuilder(
                       valueListenable: settings.seedColor,
@@ -296,7 +303,7 @@ class MenuDrawer extends StatelessWidget {
                     settings.saveBlockedExpanded(expanded);
                   },
                   leading: const Icon(Icons.block),
-                  title: const Text('Blocked Players'),
+                  title: Text(local.blockedPlayers),
                   children: [
                     _buildBlockedPlayersSection(context),
                   ],
@@ -307,7 +314,7 @@ class MenuDrawer extends StatelessWidget {
               valueListenable: settings.soundsOn,
               builder: (context, soundsOn, child) {
                 return SwitchListTile(
-                  title: const Text('Sound'),
+                  title: Text(local.sound),
                   value: soundsOn,
                   onChanged: (bool value) {
                     settings.toggleSoundsOn();
@@ -320,7 +327,7 @@ class MenuDrawer extends StatelessWidget {
             /*
             ListTile(
               leading: const Icon(Icons.info),
-              title: const Text('Credits'),
+              title: Text(local.credits),
               onTap: () {
                 Navigator.pop(context);
                 showDialog(

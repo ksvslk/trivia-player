@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:operation_veritas/ads/ads_controller.dart';
 import 'package:operation_veritas/change_notifier/money_controller.dart';
+import 'package:operation_veritas/l10n/app_localizations.dart';
 import 'package:operation_veritas/persistence/settings_controller.dart';
 import 'package:provider/provider.dart';
 
@@ -14,6 +15,7 @@ class BlockingOverlayPopup extends StatelessWidget {
     final settingsController = context.read<SettingsController>();
     final adsController = context.watch<AdsController>();
     final moneyController = context.read<MoneyController>();
+    final local = AppLocalizations.of(context)!;
 
     final mediaQuery = MediaQuery.of(context);
     final screenSize = MediaQuery.of(context).size;
@@ -53,7 +55,7 @@ class BlockingOverlayPopup extends StatelessWidget {
                                 Padding(
                                   padding: const EdgeInsets.all(16.0),
                                   child: Text(
-                                    'Continue playing:',
+                                    '${local.continuePlaying}:',
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
                                       fontSize: 20,
@@ -67,7 +69,7 @@ class BlockingOverlayPopup extends StatelessWidget {
                                 ElevatedButton.icon(
                                   icon: const Icon(Icons.play_circle_outline),
                                   label: Text(
-                                    'Watch Rewarded Ad',
+                                    local.watchRewardedAd,
                                     style: TextStyle(
                                       fontSize: 14,
                                       fontFamily: 'Inter',
@@ -100,7 +102,7 @@ class BlockingOverlayPopup extends StatelessWidget {
                                 ElevatedButton.icon(
                                   icon: const Icon(Icons.diamond),
                                   label: Text(
-                                    'Subscribe to Premium',
+                                    local.subscribeToPremium,
                                     style: TextStyle(
                                       fontSize: 14,
                                       fontFamily: 'Inter',
@@ -124,13 +126,13 @@ class BlockingOverlayPopup extends StatelessWidget {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     _buildPremiumFeature(context,
-                                        Icons.lock_open, 'Unlimited gameplay'),
+                                        Icons.lock_open, local.unlimitedGameplay),
                                     _buildPremiumFeature(
                                         context,
                                         Icons.auto_awesome,
-                                        'Play without pauses'),
+                                        local.playWithoutPauses),
                                     _buildPremiumFeature(context, Icons.speed,
-                                        'Competitive edge'),
+                                        local.competitiveEdge),
                                   ],
                                 ),
                                 const SizedBox(height: 16),
@@ -156,7 +158,7 @@ class BlockingOverlayPopup extends StatelessWidget {
                                       final formatted =
                                           '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
                                       return Text(
-                                        'Locked until $formatted',
+                                        '${local.lockedUntil} $formatted',
                                         style: const TextStyle(fontSize: 14),
                                       );
                                     },
