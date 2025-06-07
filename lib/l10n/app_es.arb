@@ -32,5 +32,6 @@
   "competitiveEdge": "Ventaja competitiva",
   "lockedUntil": "Bloqueado hasta",
   "version": "Versión",
-  "versionLoading": "Cargando"
+  "versionLoading": "Cargando",
+  "sendingDelay": "Desacelerar."
 }

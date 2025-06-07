@@ -33,5 +33,6 @@
   "lockedUntil": "Gesperrt bis",
   "version": "Version",
   "version": "Version",
-  "versionLoading": "Wird geladen"
+  "versionLoading": "Wird geladen",
+  "sendingDelay": "Verlangsamen."
 }

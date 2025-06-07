@@ -15,6 +15,7 @@ import 'package:operation_veritas/auth_services/auth_controller.dart';
 import 'package:operation_veritas/change_notifier/blocked_players.dart';
 import 'package:operation_veritas/change_notifier/banner_message_visibility.dart';
 import 'package:operation_veritas/change_notifier/money_controller.dart';
+import 'package:operation_veritas/change_notifier/stats_service.dart';
 import 'package:operation_veritas/change_notifier/trivia_service.dart';
 import 'package:operation_veritas/home_screen.dart';
 import 'package:operation_veritas/l10n/app_localizations.dart';
@@ -119,6 +120,7 @@ Future<void> main() async {
   final settingsController =
       SettingsController(persistence: LocalStorageSettingsPersistence());
   await settingsController.loadStateFromPersistence();
+  final statsService = StatsService();
 
   runApp(
     MyApp(
@@ -126,6 +128,7 @@ Future<void> main() async {
       adsController: adsController,
       moneyController: MoneyController(),
       authController: authController,
+      statsService: statsService
     ),
   );
 }
@@ -137,6 +140,7 @@ class MyApp extends StatelessWidget {
   final AdsController? adsController;
   final MoneyController moneyController;
   final AuthController authController;
+  final StatsService statsService;
 
   const MyApp({
     super.key,
@@ -144,6 +148,7 @@ class MyApp extends StatelessWidget {
     required this.adsController,
     required this.moneyController,
     required this.authController,
+    required this.statsService,
   });
 
   @override
@@ -179,10 +184,14 @@ class MyApp extends StatelessWidget {
                 adsController: adsController,
                 moneyController: moneyController,
                 settingsController: settingsController,
-                authController: authController),
+                authController: authController,
+                statsService: statsService),
           ),
           ChangeNotifierProvider(
             create: (context) => BannerMessageVisibility(),
+          ),
+          ChangeNotifierProvider(
+            create: (context) => statsService,
           ),
           ChangeNotifierProxyProvider<SettingsController, BlockedPlayers>(
             create: (_) => BlockedPlayers(),

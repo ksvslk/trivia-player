@@ -14,6 +14,8 @@ List<String> soundTypeToFilename(SfxType type) {
       return const ['rotate.wav'];
     case SfxType.zoomIn:
       return const ['zoomIn.wav'];
+    case SfxType.send:
+      return const ['send.wav'];
     case SfxType.zoomOut:
       return const ['zoomOut.wav'];
       case SfxType.rewardGiven:
@@ -42,6 +44,8 @@ double soundTypeToVolume(SfxType type) {
       return 0.1;
     case SfxType.rewardGiven:
       return 0.1;
+    case SfxType.send:
+      return 1;
   }
 }
 
@@ -54,5 +58,6 @@ enum SfxType {
   rotate,
   zoomIn,
   zoomOut,
-  rewardGiven
+  rewardGiven,
+  send
 }

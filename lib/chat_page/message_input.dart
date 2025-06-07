@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:operation_veritas/chat_page/sending_button.dart';
 import 'package:operation_veritas/l10n/app_localizations.dart';
 
 class MessageInput extends StatefulWidget {
@@ -54,7 +55,7 @@ class MessageInputState extends State<MessageInput> {
                 filled: true,
                 fillColor:
                     Theme.of(context).colorScheme.surfaceContainerHighest,
-                hintText: '${local.typeYourAnswer}...',
+                hintText: local.typeYourAnswer,
                 counterText: "",
                 isDense: true,
                 border: const OutlineInputBorder(),
@@ -63,20 +64,11 @@ class MessageInputState extends State<MessageInput> {
                   color: colorScheme.onSurfaceVariant,
                 ),
               ),
-              onSubmitted: (_) => widget.onSend(),
+              onSubmitted: (_) => widget.onSend,
             ),
           ),
           const SizedBox(width: 8),
-          FloatingActionButton.small(
-            elevation: 1.0,
-            focusElevation: 1.0,
-            hoverElevation: 1.0,
-            highlightElevation: 1.0,
-            onPressed: () {
-              widget.onSend(); // Call the provided onSend callback
-            },
-            child: const Icon(Icons.send),
-          ),
+          SendingButton(onSend: widget.onSend)
         ],
       ),
     );

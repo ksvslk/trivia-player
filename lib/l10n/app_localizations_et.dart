@@ -97,4 +97,7 @@ class AppLocalizationsEt extends AppLocalizations {
 
   @override
   String get versionLoading => 'Laadimine';
+
+  @override
+  String get sendingDelay => 'Võta hoogu maha.';
 }

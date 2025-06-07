@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:operation_veritas/ads/ads_controller.dart';
 import 'package:operation_veritas/auth_services/auth_controller.dart';
 import 'package:operation_veritas/change_notifier/money_controller.dart';
+import 'package:operation_veritas/change_notifier/stats_service.dart';
 import 'package:operation_veritas/chat_page/message.dart';
 import 'package:operation_veritas/persistence/settings_controller.dart';
 
@@ -13,9 +14,11 @@ class TriviaService extends ChangeNotifier {
   final MoneyController? moneyController;
   final SettingsController? settingsController;
   final AuthController? authController;
-
-  final DatabaseReference _messagesRef =
-      FirebaseDatabase.instance.ref().child('trivia_messages');
+  final StatsService? statsService;
+  final DatabaseReference _messagesRef = FirebaseDatabase.instance.ref().child(
+    'trivia_messages',
+  );
+  late final DatabaseReference _statsRef;
   final List<Message> _messages = [];
 
   bool _connected = false;
@@ -31,11 +34,13 @@ class TriviaService extends ChangeNotifier {
   Message? get getActiveQuestion => _activeQuestion;
   Message? get getLastMessage => _lastMessage;
 
-  TriviaService(
-      {this.moneyController,
-      this.adsController,
-      this.settingsController,
-      this.authController}) {
+  TriviaService({
+    this.moneyController,
+    this.adsController,
+    this.settingsController,
+    this.authController,
+    this.statsService,
+  }) {
     _onAuthStateChanged();
     authController?.addListener(_onAuthStateChanged);
   }
@@ -60,6 +65,12 @@ class TriviaService extends ChangeNotifier {
     // Messages listener with limit for initial load
     _messagesRef.limitToLast(10).onChildAdded.listen(_handleNewMessage);
 
+    // Listen stats
+    FirebaseDatabase.instance
+        .ref('stats/${authController?.currentUser?.uid}')
+        .onValue
+        .listen(_handleStatsChange);
+
     // Mark loading as complete after a short delay to ensure initial messages are loaded
     Future.delayed(const Duration(milliseconds: 500), () {
       _isLoading = false;
@@ -67,27 +78,43 @@ class TriviaService extends ChangeNotifier {
     });
   }
 
+void _handleStatsChange(DatabaseEvent event) {
+  if (event.snapshot.value == null) return;
+
+  final stats = Map<dynamic, dynamic>.from(event.snapshot.value as Map);
+  final dynamic streakDynamic = stats["streak"];
+
+  List<int> streak;
+  if (streakDynamic is List) {
+    streak = streakDynamic.cast<int>();
+  } else {
+    streak = List.filled(10, 0);
+  }
+
+  statsService?.setQuestionsWon(streak);
+}
+
   void _handleNewMessage(DatabaseEvent event) {
     if (event.snapshot.value == null) return;
 
     try {
       final message = Map<String, dynamic>.from(event.snapshot.value as Map);
       final newMessage = Message(
-          id: event.snapshot.key ?? '',
-          playerUid: message['id'] ?? '',
-          name: message['name'] ?? 'Unknown',
-          text: message['text'] ?? '',
-          badgeText: message['badgeText'] ?? '',
-          isBot: message['isBot'] ?? false,
-          timestamp: message['timestamp'] ?? 0,
-          roundNumber: message['roundNumber'] ?? -1,
-          messageType: message['messageType'] ?? '',
-          questionStartTime: message['questionStartTime'] ?? -1,
-          questionEndTime: message['questionEndTime'] ?? -1,
-          serverTime: message['serverTime'] ?? -1,
-          photoUrl: message['photoUrl'] ?? '',
-          questionWinnerUid: message['questionWinnerUid'] ?? '',
-          correctAnswerId: message['correctAnswerId'] ?? '',
+        id: event.snapshot.key ?? '',
+        playerUid: message['id'] ?? '',
+        name: message['name'] ?? 'Unknown',
+        text: message['text'] ?? '',
+        badgeText: message['badgeText'] ?? '',
+        isBot: message['isBot'] ?? false,
+        timestamp: message['timestamp'] ?? 0,
+        roundNumber: message['roundNumber'] ?? -1,
+        messageType: message['messageType'] ?? '',
+        questionStartTime: message['questionStartTime'] ?? -1,
+        questionEndTime: message['questionEndTime'] ?? -1,
+        serverTime: message['serverTime'] ?? -1,
+        photoUrl: message['photoUrl'] ?? '',
+        questionWinnerUid: message['questionWinnerUid'] ?? '',
+        correctAnswerId: message['correctAnswerId'] ?? '',
       );
       print("questionWinnerUid: ${newMessage.questionWinnerUid}");
       if (newMessage.messageType == "question") {
@@ -118,12 +145,14 @@ class TriviaService extends ChangeNotifier {
         await settingsController?.getLastRoundWithAd() ?? -2;
     if (lastRoundWithAd < 0) {
       await settingsController?.setLastRoundWithAd(
-          newValue: lastRoundWithAd + 1); // skip first for new users
+        newValue: lastRoundWithAd + 1,
+      ); // skip first for new users
       return;
     }
     if (message.roundNumber > lastRoundWithAd) {
       await settingsController?.setLastRoundWithAd(
-          newValue: message.roundNumber);
+        newValue: message.roundNumber,
+      );
       settingsController?.saveLockTimeEnd();
     }
   }
@@ -141,7 +170,6 @@ class TriviaService extends ChangeNotifier {
         'photoUrl': authController?.currentUser?.photoURL ?? '',
       });
     } catch (e) {
-      debugPrint('Failed to send message: $e');
       rethrow; // Rethrow to allow UI to handle the error
     }
   }

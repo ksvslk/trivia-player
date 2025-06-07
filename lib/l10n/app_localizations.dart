@@ -285,6 +285,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Loading'**
   String get versionLoading;
+
+  /// No description provided for @sendingDelay.
+  ///
+  /// In en, this message translates to:
+  /// **'Slow down.'**
+  String get sendingDelay;
 }
 
 class _AppLocalizationsDelegate

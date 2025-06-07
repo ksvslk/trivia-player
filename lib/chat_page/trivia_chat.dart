@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
+import 'package:operation_veritas/audio/audio_controller.dart';
+import 'package:operation_veritas/audio/sounds.dart';
+import 'package:operation_veritas/change_notifier/stats_service.dart';
+import 'package:operation_veritas/chat_page/animated_dots_widget.dart';
 import 'package:operation_veritas/chat_page/message_input.dart';
 import 'package:operation_veritas/chat_page/message_list_view.dart';
 import 'package:operation_veritas/chat_page/question_time_progress.dart';
@@ -33,7 +37,10 @@ class _TriviaChatState extends State<TriviaChat> {
     super.dispose();
   }
 
-  Future<void> _sendMessage(TriviaService triviaService, AppLocalizations local) async {
+  Future<void> _sendMessage(
+    TriviaService triviaService,
+    AppLocalizations local,
+  ) async {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
 
@@ -42,9 +49,9 @@ class _TriviaChatState extends State<TriviaChat> {
       _controller.clear();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${local.failedToSend}: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(local.failedToSend)));
       }
     }
   }
@@ -52,10 +59,10 @@ class _TriviaChatState extends State<TriviaChat> {
   @override
   Widget build(BuildContext context) {
     final local = AppLocalizations.of(context)!;
+    final audioController = context.read<AudioController>();
 
     return Consumer<TriviaService>(
       builder: (context, triviaService, child) {
-
         // Check if we need to scroll when messages change
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (triviaService.currentUserId ==
@@ -69,7 +76,8 @@ class _TriviaChatState extends State<TriviaChat> {
         });
 
         // Check if we need to show loading state
-        final bool isLoading = triviaService.isLoading ||
+        final bool isLoading =
+            triviaService.isLoading ||
             triviaService.messages.isEmpty ||
             !triviaService.connected;
 
@@ -80,19 +88,19 @@ class _TriviaChatState extends State<TriviaChat> {
                 ? Center(
                     child: Text(
                       AppLocalizations.of(context)!.loading,
-                    style: const TextStyle(
-                      fontFamily: 'Inter',
-                      fontSize: 12,
+                      style: const TextStyle(fontFamily: 'Inter', fontSize: 12),
                     ),
-                  ))
+                  )
                 // Show full chat UI when data is ready
                 : Column(
-                    children: [      // Question banner
+                    children: [
+                      // Question banner
                       Consumer<BannerMessageVisibility>(
                         builder: (context, visibility, child) {
                           final colorScheme = Theme.of(context).colorScheme;
                           return Visibility(
-                            visible: !visibility.isQuestionVisibleOnScreen() &&
+                            visible:
+                                !visibility.isQuestionVisibleOnScreen() &&
                                 triviaService.getActiveQuestion != null,
                             maintainSize: false,
                             maintainAnimation: false,
@@ -109,7 +117,7 @@ class _TriviaChatState extends State<TriviaChat> {
                                 style: TextStyle(
                                   color: colorScheme.onSurface,
                                   fontFamily: 'Inter',
-                                  fontSize: 13,
+                                  fontSize: 14,
                                 ),
                               ),
                             ),
@@ -122,16 +130,18 @@ class _TriviaChatState extends State<TriviaChat> {
                           triviaService.getActiveQuestion!.messageType ==
                               'question')
                         QuestionTimeProgress(
-                            message: triviaService.getActiveQuestion!),
+                          message: triviaService.getActiveQuestion!,
+                        ),
 
                       // Messages list
                       Expanded(
                         child: MessageListView(
-                            originalMessages: triviaService.messages,
-                            scrollController: _scrollController,
-                            currentUserId: triviaService.currentUserId,
-                            formatTimestamp: triviaService.formatTimestamp,
-                            activeQuestion: triviaService.getActiveQuestion),
+                          originalMessages: triviaService.messages,
+                          scrollController: _scrollController,
+                          currentUserId: triviaService.currentUserId,
+                          formatTimestamp: triviaService.formatTimestamp,
+                          activeQuestion: triviaService.getActiveQuestion,
+                        ),
                       ),
 
                       // Message input
@@ -141,8 +151,14 @@ class _TriviaChatState extends State<TriviaChat> {
                           if (_controller.text.isNotEmpty) {
                             // Optionally play sound effect
                             // audioController.playSfx(SfxType.rotate);
+                            audioController.playSfx(SfxType.send);
                             _sendMessage(triviaService, local);
                           }
+                        },
+                      ),
+                      Consumer<StatsService>(
+                        builder: (context, stats, child) {
+                          return AnimatedDotsWidget(dotStates: stats.getQuestionsWon());
                         },
                       ),
                     ],

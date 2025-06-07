@@ -97,4 +97,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get versionLoading => 'Cargando';
+
+  @override
+  String get sendingDelay => 'Desacelerar.';
 }

@@ -32,5 +32,6 @@
   "competitiveEdge": "Competitive edge",
   "lockedUntil": "Locked until",
   "version": "Version",
-  "versionLoading": "Loading"
+  "versionLoading": "Loading",
+  "sendingDelay": "Slow down."
 }

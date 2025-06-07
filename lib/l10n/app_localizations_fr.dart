@@ -97,4 +97,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get versionLoading => 'Chargement';
+
+  @override
+  String get sendingDelay => 'Ralentir.';
 }

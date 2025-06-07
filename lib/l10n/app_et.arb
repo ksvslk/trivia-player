@@ -32,5 +32,6 @@
   "competitiveEdge": "Konkurentsieelis",
   "lockedUntil": "Lukus kuni",
   "version": "Versioon",
-  "versionLoading": "Laadimine"
+  "versionLoading": "Laadimine",
+  "sendingDelay": "Võta hoogu maha."
 }
