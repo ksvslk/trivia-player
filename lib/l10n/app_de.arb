@@ -22,7 +22,7 @@
   "shareConcerns": "Teilen Sie Ihre Bedenken über",
   "blowTheWhistle": "Alarm schlagen",
   "host": "Gastgeber",
-  "typeYourAnswer": "Geben Sie Ihre Antwort ein...",
+  "typeYourAnswer": "Deine Antwort",
   "failedToSend": "Nachricht konnte nicht gesendet werden",
   "continuePlaying": "Weiterspielen",
   "watchRewardedAd": "Belohnungswerbung ansehen",
@@ -34,5 +34,7 @@
   "version": "Version",
   "version": "Version",
   "versionLoading": "Wird geladen",
-  "sendingDelay": "Verlangsamen."
+  "sendingDelay": "Verlangsamen.",
+  "round": "Runde:",
+  "players": "Spieler:"
 }

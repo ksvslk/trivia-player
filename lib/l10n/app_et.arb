@@ -22,7 +22,7 @@
   "shareConcerns": "Jaga oma muresid",
   "blowTheWhistle": "Anna märku",
   "host": "Juht",
-  "typeYourAnswer": "Kirjuta oma vastus...",
+  "typeYourAnswer": "Sinu Vastus",
   "failedToSend": "Sõnumi saatmine ebaõnnestus",
   "continuePlaying": "Jätka mängimist",
   "watchRewardedAd": "Vaata tasustatud reklaami",
@@ -33,5 +33,7 @@
   "lockedUntil": "Lukus kuni",
   "version": "Versioon",
   "versionLoading": "Laadimine",
-  "sendingDelay": "Võta hoogu maha."
+  "sendingDelay": "Võta hoogu maha.",
+  "round": "Voor:",
+  "players": "Mängijad:"
 }

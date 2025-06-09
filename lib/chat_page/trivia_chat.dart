@@ -3,7 +3,7 @@ import 'package:logging/logging.dart';
 import 'package:operation_veritas/audio/audio_controller.dart';
 import 'package:operation_veritas/audio/sounds.dart';
 import 'package:operation_veritas/change_notifier/stats_service.dart';
-import 'package:operation_veritas/chat_page/animated_dots_widget.dart';
+import 'package:operation_veritas/chat_page/footer_info.dart';
 import 'package:operation_veritas/chat_page/message_input.dart';
 import 'package:operation_veritas/chat_page/message_list_view.dart';
 import 'package:operation_veritas/chat_page/question_time_progress.dart';
@@ -158,7 +158,10 @@ class _TriviaChatState extends State<TriviaChat> {
                       ),
                       Consumer<StatsService>(
                         builder: (context, stats, child) {
-                          return AnimatedDotsWidget(dotStates: stats.getQuestionsWon());
+                          return FooterInfo(
+                                dotStates: stats.getQuestionsWon(),
+                                playerCount: stats.getPlayersCount(),
+                          );
                         },
                       ),
                     ],

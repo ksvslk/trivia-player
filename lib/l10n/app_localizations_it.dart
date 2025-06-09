@@ -66,7 +66,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get host => 'Host';
 
   @override
-  String get typeYourAnswer => 'Digita la tua risposta...';
+  String get typeYourAnswer => 'La Tua Risposta';
 
   @override
   String get failedToSend => 'Invio del messaggio fallito';
@@ -100,4 +100,10 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get sendingDelay => 'Rallentare.';
+
+  @override
+  String get round => 'Round:';
+
+  @override
+  String get players => 'Giocatori:';
 }

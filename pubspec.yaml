@@ -53,16 +53,23 @@ flutter:
     - assets/sfx/
     - assets/images/
   fonts:
-    - family: Gabarito
-      fonts:
-        - asset: fonts/Gabarito-Bold.ttf
     - family: Inter
       fonts:
-        - asset: fonts/Inter-VariableFont_opsz,wght.ttf
-    - family: SpaceGrotesk
-      fonts:
-        - asset: fonts/SpaceGrotesk-VariableFont_wght.ttf
-    - family: WorkSans
-      fonts:
-        - asset: fonts/WorkSans-VariableFont_wght.ttf
-
+       #- asset: fonts/AtkinsonHyperlegibleNext-Regular.ttf
+       #- asset: fonts/FiraSansCondensed-Regular.ttf
+        - asset: fonts/FunnelSans-Regular.ttf
+        #- asset: fonts/Gabarito-Bold.ttf
+        #- asset: fonts/Gantari-Regular.ttf
+        #- asset: fonts/IBMPlexSansCondensed-Medium.ttf
+        #- asset: fonts/IBMPlexSansCondensed-Regular.ttf
+        #- asset: fonts/Inter-VariableFont_opsz,wght.ttf
+        #- asset: fonts/Karla-Regular.ttf
+        #- asset: fonts/LeagueSpartan-Regular.ttf
+        #- asset: fonts/LeagueSpartan-SemiBold.ttf
+        #- asset: fonts/RadioCanada_Condensed-Regular.ttf
+        #- asset: fonts/RobotoFlex-VariableFont_GRAD,XOPQ,XTRA,YOPQ,YTAS,YTDE,YTFI,YTLC,YTUC,opsz,slnt,wdth,wght.ttf
+        #- asset: fonts/SairaCondensed-Medium.ttf
+        #- asset: fonts/Sora-Regular.ttf
+        #- asset: fonts/SpaceGrotesk-VariableFont_wght.ttf
+        #- asset: fonts/SplineSans-Regular.ttf
+        #- asset: fonts/WorkSans-VariableFont_wght.ttf

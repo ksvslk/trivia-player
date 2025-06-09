@@ -66,7 +66,7 @@ class AppLocalizationsEt extends AppLocalizations {
   String get host => 'Juht';
 
   @override
-  String get typeYourAnswer => 'Kirjuta oma vastus...';
+  String get typeYourAnswer => 'Sinu Vastus';
 
   @override
   String get failedToSend => 'Sõnumi saatmine ebaõnnestus';
@@ -100,4 +100,10 @@ class AppLocalizationsEt extends AppLocalizations {
 
   @override
   String get sendingDelay => 'Võta hoogu maha.';
+
+  @override
+  String get round => 'Voor:';
+
+  @override
+  String get players => 'Mängijad:';
 }

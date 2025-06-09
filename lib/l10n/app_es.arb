@@ -22,7 +22,7 @@
   "shareConcerns": "Comparte tus preocupaciones sobre",
   "blowTheWhistle": "Dar la alarma",
   "host": "Anfitrión",
-  "typeYourAnswer": "Escribe tu respuesta...",
+  "typeYourAnswer": "Tu Respuesta",
   "failedToSend": "Error al enviar mensaje",
   "continuePlaying": "Continuar jugando",
   "watchRewardedAd": "Ver anuncio con recompensa",
@@ -33,5 +33,7 @@
   "lockedUntil": "Bloqueado hasta",
   "version": "Versión",
   "versionLoading": "Cargando",
-  "sendingDelay": "Desacelerar."
+  "sendingDelay": "Desacelerar.",
+  "round": "Ronda:",
+  "players": "Jugadores:"
 }

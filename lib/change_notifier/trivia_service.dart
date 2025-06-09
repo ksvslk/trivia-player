@@ -71,12 +71,32 @@ class TriviaService extends ChangeNotifier {
         .onValue
         .listen(_handleStatsChange);
 
+    // Listen players count
+    FirebaseDatabase.instance
+        .ref('player_count')
+        .onValue
+        .listen(_handlePlayersChange);
+
     // Mark loading as complete after a short delay to ensure initial messages are loaded
     Future.delayed(const Duration(milliseconds: 500), () {
       _isLoading = false;
       notifyListeners();
     });
   }
+
+void _handlePlayersChange(DatabaseEvent event) {
+  if (event.snapshot.value == null) {
+    return;
+  }
+  final dynamic playerCountValue = event.snapshot.value;
+  if (playerCountValue is int) {
+    statsService?.setPlayersCount(playerCountValue);
+  } else if (playerCountValue is num) {
+    statsService?.setPlayersCount(playerCountValue.toInt());
+  } else {
+    print('Warning: Unexpected type for player count: ${playerCountValue.runtimeType}');
+  }
+}
 
 void _handleStatsChange(DatabaseEvent event) {
   if (event.snapshot.value == null) return;

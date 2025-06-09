@@ -223,7 +223,7 @@ abstract class AppLocalizations {
   /// No description provided for @typeYourAnswer.
   ///
   /// In en, this message translates to:
-  /// **'Type your answer...'**
+  /// **'Your Answer'**
   String get typeYourAnswer;
 
   /// No description provided for @failedToSend.
@@ -291,6 +291,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Slow down.'**
   String get sendingDelay;
+
+  /// No description provided for @round.
+  ///
+  /// In en, this message translates to:
+  /// **'Round:'**
+  String get round;
+
+  /// No description provided for @players.
+  ///
+  /// In en, this message translates to:
+  /// **'Players:'**
+  String get players;
 }
 
 class _AppLocalizationsDelegate

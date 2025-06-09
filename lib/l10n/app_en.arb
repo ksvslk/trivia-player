@@ -22,7 +22,7 @@
   "shareConcerns": "Share your concerns about",
   "blowTheWhistle": "Blow the whistle",
   "host": "Host",
-  "typeYourAnswer": "Type your answer...",
+  "typeYourAnswer": "Your Answer",
   "failedToSend": "Failed to send message",
   "continuePlaying": "Continue playing",
   "watchRewardedAd": "Watch Rewarded Ad",
@@ -33,5 +33,7 @@
   "lockedUntil": "Locked until",
   "version": "Version",
   "versionLoading": "Loading",
-  "sendingDelay": "Slow down."
+  "sendingDelay": "Slow down.",
+  "round": "Round:",
+  "players": "Players:"
 }
