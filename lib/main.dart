@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -17,6 +18,7 @@ import 'package:operation_veritas/change_notifier/banner_message_visibility.dart
 import 'package:operation_veritas/change_notifier/money_controller.dart';
 import 'package:operation_veritas/change_notifier/stats_service.dart';
 import 'package:operation_veritas/change_notifier/trivia_service.dart';
+import 'package:operation_veritas/constants.dart';
 import 'package:operation_veritas/home_screen.dart';
 import 'package:operation_veritas/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
@@ -51,6 +53,17 @@ void setupConnectionTracking() {
   });
 }
 */
+
+Future<void> setUpRemoteConfig() async {
+  final remoteConfig = FirebaseRemoteConfig.instance;
+  await remoteConfig.setConfigSettings(
+    RemoteConfigSettings(
+      fetchTimeout: const Duration(minutes: 1),
+      minimumFetchInterval: const Duration(minutes: 5),
+    ),
+  );
+  await remoteConfig.setDefaults(const {C.rewardedAdsIntervalTag: 2});
+}
 
 Future<void> initPlatformState() async {
   await Purchases.setLogLevel(LogLevel.debug);
@@ -105,6 +118,8 @@ Future<void> main() async {
   await initPlatformState();
   //setupConnectionTracking();
 
+  await setUpRemoteConfig();
+
   _log.info('Going full screen');
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 
@@ -117,8 +132,9 @@ Future<void> main() async {
     adsController.requestTheLatestConsentInformation();
   }
 
-  final settingsController =
-      SettingsController(persistence: LocalStorageSettingsPersistence());
+  final settingsController = SettingsController(
+    persistence: LocalStorageSettingsPersistence(),
+  );
   await settingsController.loadStateFromPersistence();
   final statsService = StatsService();
 
@@ -128,7 +144,7 @@ Future<void> main() async {
       adsController: adsController,
       moneyController: MoneyController(),
       authController: authController,
-      statsService: statsService
+      statsService: statsService,
     ),
   );
 }
@@ -160,8 +176,11 @@ class MyApp extends StatelessWidget {
             lazy: false,
             create: (context) => settingsController,
           ),
-          ProxyProvider2<SettingsController, ValueNotifier<AppLifecycleState>,
-              AudioController>(
+          ProxyProvider2<
+            SettingsController,
+            ValueNotifier<AppLifecycleState>,
+            AudioController
+          >(
             lazy: false,
             create: (context) => AudioController()..initialize(),
             update: (context, settings, lifecycleNotifier, audio) {
@@ -173,26 +192,20 @@ class MyApp extends StatelessWidget {
             dispose: (context, audio) => audio.dispose(),
           ),
           ChangeNotifierProvider<AdsController?>.value(value: adsController),
-          ChangeNotifierProvider(
-            create: (context) => moneyController,
-          ),
-          ChangeNotifierProvider(
-            create: (context) => authController,
-          ),
+          ChangeNotifierProvider(create: (context) => moneyController),
+          ChangeNotifierProvider(create: (context) => authController),
           ChangeNotifierProvider(
             create: (context) => TriviaService(
-                adsController: adsController,
-                moneyController: moneyController,
-                settingsController: settingsController,
-                authController: authController,
-                statsService: statsService),
+              moneyController: moneyController,
+              settingsController: settingsController,
+              authController: authController,
+              statsService: statsService,
+            ),
           ),
           ChangeNotifierProvider(
             create: (context) => BannerMessageVisibility(),
           ),
-          ChangeNotifierProvider(
-            create: (context) => statsService,
-          ),
+          ChangeNotifierProvider(create: (context) => statsService),
           ChangeNotifierProxyProvider<SettingsController, BlockedPlayers>(
             create: (_) => BlockedPlayers(),
             update: (_, settingsController, blockedPlayers) {
@@ -255,9 +268,7 @@ class MyApp extends StatelessWidget {
                 darkTheme: darkTheme,
                 navigatorKey: navigatorKey, // Add navigator key here
 
-                home: HomeScreen(
-                  navigatorKey: navigatorKey,
-                ),
+                home: HomeScreen(navigatorKey: navigatorKey),
               );
             },
           );

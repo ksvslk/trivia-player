@@ -161,6 +161,7 @@ class _TriviaChatState extends State<TriviaChat> {
                           return FooterInfo(
                                 dotStates: stats.getQuestionsWon(),
                                 playerCount: stats.getPlayersCount(),
+                                currentQuestionNumber: stats.getQuestionNumber(),
                           );
                         },
                       ),

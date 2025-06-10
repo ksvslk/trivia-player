@@ -7,8 +7,16 @@ class StatsService extends ChangeNotifier {
   int _playerCount = 0;
   int getPlayersCount() => _playerCount;
 
+  int _questionNumber = 0;
+  int getQuestionNumber() => _questionNumber;
+
   setQuestionsWon(List<int> list) {
     _questionsWon = list;
+    notifyListeners();
+  }
+
+  setCurrentQuestion(int questionNumber) {
+    _questionNumber = questionNumber;
     notifyListeners();
   }
 
@@ -16,4 +24,5 @@ class StatsService extends ChangeNotifier {
     _playerCount = count;
     notifyListeners();
   }
+
 }

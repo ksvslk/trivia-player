@@ -2,7 +2,6 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:operation_veritas/ads/ads_controller.dart';
 import 'package:operation_veritas/auth_services/auth_controller.dart';
 import 'package:operation_veritas/change_notifier/money_controller.dart';
 import 'package:operation_veritas/change_notifier/stats_service.dart';
@@ -10,7 +9,6 @@ import 'package:operation_veritas/chat_page/message.dart';
 import 'package:operation_veritas/persistence/settings_controller.dart';
 
 class TriviaService extends ChangeNotifier {
-  final AdsController? adsController;
   final MoneyController? moneyController;
   final SettingsController? settingsController;
   final AuthController? authController;
@@ -36,7 +34,6 @@ class TriviaService extends ChangeNotifier {
 
   TriviaService({
     this.moneyController,
-    this.adsController,
     this.settingsController,
     this.authController,
     this.statsService,
@@ -84,35 +81,45 @@ class TriviaService extends ChangeNotifier {
     });
   }
 
-void _handlePlayersChange(DatabaseEvent event) {
-  if (event.snapshot.value == null) {
-    return;
-  }
-  final dynamic playerCountValue = event.snapshot.value;
-  if (playerCountValue is int) {
-    statsService?.setPlayersCount(playerCountValue);
-  } else if (playerCountValue is num) {
-    statsService?.setPlayersCount(playerCountValue.toInt());
-  } else {
-    print('Warning: Unexpected type for player count: ${playerCountValue.runtimeType}');
-  }
-}
-
-void _handleStatsChange(DatabaseEvent event) {
-  if (event.snapshot.value == null) return;
-
-  final stats = Map<dynamic, dynamic>.from(event.snapshot.value as Map);
-  final dynamic streakDynamic = stats["streak"];
-
-  List<int> streak;
-  if (streakDynamic is List) {
-    streak = streakDynamic.cast<int>();
-  } else {
-    streak = List.filled(10, 0);
+  void _handlePlayersChange(DatabaseEvent event) {
+    if (event.snapshot.value == null) {
+      return;
+    }
+    final dynamic playerCountValue = event.snapshot.value;
+    if (playerCountValue is int) {
+      statsService?.setPlayersCount(playerCountValue);
+    } else if (playerCountValue is num) {
+      statsService?.setPlayersCount(playerCountValue.toInt());
+    } else {
+      print(
+        'Warning: Unexpected type for player count: ${playerCountValue.runtimeType}',
+      );
+    }
   }
 
-  statsService?.setQuestionsWon(streak);
-}
+  void _handleStatsChange(DatabaseEvent event) {
+    if (event.snapshot.value == null) return;
+
+    final stats = Map<dynamic, dynamic>.from(event.snapshot.value as Map);
+    final dynamic streakDynamic = stats["streak"];
+
+    List<int> streak;
+    if (streakDynamic is List) {
+      streak = streakDynamic.cast<int>();
+    } else {
+      streak = List.filled(10, 0);
+    }
+
+    statsService?.setQuestionsWon(streak);
+  }
+
+  void setCurrentQuestionNumber(String text) {
+    var qnr = 1;
+    if (text.contains("QUESTION")) {
+      qnr = int.parse(text.split(' ')[1].split('/')[0]);
+    }
+    statsService?.setCurrentQuestion(qnr);
+  }
 
   void _handleNewMessage(DatabaseEvent event) {
     if (event.snapshot.value == null) return;
@@ -136,9 +143,9 @@ void _handleStatsChange(DatabaseEvent event) {
         questionWinnerUid: message['questionWinnerUid'] ?? '',
         correctAnswerId: message['correctAnswerId'] ?? '',
       );
-      print("questionWinnerUid: ${newMessage.questionWinnerUid}");
       if (newMessage.messageType == "question") {
         _activeQuestion = newMessage;
+        setCurrentQuestionNumber(_activeQuestion?.badgeText ?? "");
       } else if (newMessage.messageType == "round_end" ||
           newMessage.messageType == "round_end_with_category_selection") {
         showAdWhenNeeded(newMessage);
@@ -160,9 +167,10 @@ void _handleStatsChange(DatabaseEvent event) {
   }
 
   Future<void> showAdWhenNeeded(Message message) async {
+    // Not gonna do anything
     if (moneyController?.isSubscribed() == true) return;
-    final lastRoundWithAd =
-        await settingsController?.getLastRoundWithAd() ?? -2;
+
+    final lastRoundWithAd = await settingsController?.getLastRoundWithAd() ?? -2;
     if (lastRoundWithAd < 0) {
       await settingsController?.setLastRoundWithAd(
         newValue: lastRoundWithAd + 1,
