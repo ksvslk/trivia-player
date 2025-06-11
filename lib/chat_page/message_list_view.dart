@@ -31,6 +31,7 @@ class _MessageListViewState extends State<MessageListView>
   AnimationController? _animationController;
   Animation<double>? _fadeAnimation;
   String? _lastMessageId;
+  bool _hasAnimated = false; // Track if animation has completed
 
   @override
   void initState() {
@@ -48,6 +49,13 @@ class _MessageListViewState extends State<MessageListView>
       parent: _animationController!,
       curve: Curves.easeOut,
     );
+    
+    // Add listener to track animation completion
+    _animationController!.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        _hasAnimated = true;
+      }
+    });
   }
 
   @override
@@ -62,6 +70,7 @@ class _MessageListViewState extends State<MessageListView>
       final newLastMessage = widget.originalMessages.last;
       if (_lastMessageId != newLastMessage.id) {
         _lastMessageId = newLastMessage.id;
+        _hasAnimated = false; // Reset animation state
         _initializeAnimation();
         _animationController!.forward();
       }
@@ -70,6 +79,11 @@ class _MessageListViewState extends State<MessageListView>
       final currentLastMessage = widget.originalMessages.last;
       if (_lastMessageId != currentLastMessage.id) {
         _lastMessageId = currentLastMessage.id;
+        // If this is just a theme change, mark as already animated
+        if (oldWidget.originalMessages.isNotEmpty && 
+            oldWidget.originalMessages.length == widget.originalMessages.length) {
+          _hasAnimated = true;
+        }
       }
     }
   }
@@ -90,8 +104,11 @@ class _MessageListViewState extends State<MessageListView>
       formatTimestamp: widget.formatTimestamp,
     );
 
-    // Apply animation only to the newest message
-    if (isNewestMessage && _animationController != null && _fadeAnimation != null) {
+    // Apply animation only to the newest message that hasn't been animated yet
+    if (isNewestMessage && 
+        _animationController != null && 
+        _fadeAnimation != null && 
+        !_hasAnimated) {
       messageBubble = AnimatedBuilder(
         animation: _animationController!,
         builder: (context, child) {

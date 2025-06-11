@@ -2,56 +2,31 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/widgets.dart';
 import 'package:logging/logging.dart';
 import 'package:operation_veritas/persistence/settings_controller.dart';
+import 'package:sound_effect/sound_effect.dart';
 
 import 'sounds.dart';
-
-const String musicPath = 'music/music.wav';
 
 /// Allows playing music and sound. A facade to `package:audioplayers`.
 class AudioController {
   static final _log = Logger('AudioController');
 
-  /// This is a list of [AudioPlayer] instances which are rotated to play
-  /// sound effects.
-  final List<AudioPlayer> _sfxPlayers;
-  int _currentSfxPlayer = 0;
   SettingsController? _settings;
   ValueNotifier<AppLifecycleState>? _lifecycleNotifier;
+  final _soundEffect = SoundEffect();
 
-  /// Creates an instance that plays music and sound.
-  ///
-  /// Use [polyphony] to configure the number of sound effects (SFX) that can
-  /// play at the same time. A [polyphony] of `1` will always only play one
-  /// sound (a new sound will stop the previous one). See discussion
-  /// of [_sfxPlayers] to learn why this is the case.
-  ///
-  /// Background music does not count into the [polyphony] limit. Music will
-  /// never be overridden by sound effects because that would be silly.
-  AudioController({int polyphony = 2})
-      : assert(polyphony >= 1),
-        _sfxPlayers = Iterable.generate(
-                polyphony, (i) => AudioPlayer(playerId: 'sfxPlayer#$i'))
-            .toList(growable: false);
+  AudioController({int polyphony = 2});
 
-  /// Enables the [AudioController] to listen to [AppLifecycleState] events,
-  /// and therefore do things like stopping playback when the game
-  /// goes into the background.
   void attachLifecycleNotifier(
-      ValueNotifier<AppLifecycleState> lifecycleNotifier) {
+    ValueNotifier<AppLifecycleState> lifecycleNotifier,
+  ) {
     _lifecycleNotifier?.removeListener(_handleAppLifecycle);
-
     lifecycleNotifier.addListener(_handleAppLifecycle);
     _lifecycleNotifier = lifecycleNotifier;
   }
 
-  /// Enables the [AudioController] to track changes to settings.
-  /// Namely, when any of [SettingsController.muted],
-  /// [SettingsController.musicOn] or [SettingsController.soundsOn] changes,
-  /// the audio controller will act accordingly.
   void attachSettings(SettingsController settingsController) {
     if (_settings == settingsController) {
       // Already attached to this instance. Nothing to do.
@@ -74,47 +49,40 @@ class AudioController {
     _log.info("dispose");
     _lifecycleNotifier?.removeListener(_handleAppLifecycle);
     _stopAllSound();
-    for (final player in _sfxPlayers) {
-      player.dispose();
-    }
+    _soundEffect.release();
   }
 
   /// Preloads all sound effects.
   Future<void> initialize() async {
     _log.info('Preloading sound effects');
-    // This assumes there is only a limited number of sound effects in the game.
-    // If there are hundreds of long sound effect files, it's better
-    // to be more selective when preloading.
-    await AudioCache.instance.loadAll(SfxType.values
-        .expand(soundTypeToFilename)
-        .map((path) => 'sfx/$path')
-        .toList());
+    await _soundEffect.initialize();
+    await Future.wait(
+      SfxType.values
+          .expand(
+            (sfxType) => soundTypeToFilename(
+              sfxType,
+            ).map((path) => (sfxType: sfxType, path: path)),
+          )
+          .map(
+            (record) =>
+                _soundEffect.load(record.sfxType.name, 'assets/sfx/${record.path}'),
+          ),
+    );
   }
 
-  /// Plays a single sound effect, defined by [type].
-  ///
-  /// The controller will ignore this call when the attached settings'
-  /// [SettingsController.muted] is `true` or if its
-  /// [SettingsController.soundsOn] is `false`.
   void playSfx(SfxType type) {
+
     final soundsOn = _settings?.soundsOn.value ?? false;
     if (!soundsOn) {
       return;
     }
-
-    final options = soundTypeToFilename(type);
-    final filename = options.first;
-    final currentPlayer = _sfxPlayers[_currentSfxPlayer];
-    currentPlayer.play(AssetSource('sfx/$filename'),
-        volume: soundTypeToVolume(type));
-    _currentSfxPlayer = (_currentSfxPlayer + 1) % _sfxPlayers.length;
+    _soundEffect.play(type.name);
   }
-
 
   void _handleAppLifecycle() {
     switch (_lifecycleNotifier!.value) {
       case AppLifecycleState.paused:
-         _stopAllSound();
+        _stopAllSound();
       case AppLifecycleState.detached:
         _stopAllSound();
       case AppLifecycleState.hidden:
@@ -127,18 +95,10 @@ class AudioController {
   }
 
   void _soundsOnHandler() {
-    for (final player in _sfxPlayers) {
-      if (player.state == PlayerState.playing) {
-        player.stop();
-      }
-    }
+  
   }
 
   void _stopAllSound() {
     _log.info('Stopping all sound');
-    for (final player in _sfxPlayers) {
-      player.stop();
-    }
   }
-  
 }

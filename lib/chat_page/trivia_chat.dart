@@ -150,7 +150,6 @@ class _TriviaChatState extends State<TriviaChat> {
                         onSend: () {
                           if (_controller.text.isNotEmpty) {
                             // Optionally play sound effect
-                            // audioController.playSfx(SfxType.rotate);
                             audioController.playSfx(SfxType.send);
                             _sendMessage(triviaService, local);
                           }

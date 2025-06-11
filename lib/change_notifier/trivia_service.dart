@@ -2,6 +2,8 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:operation_veritas/audio/audio_controller.dart';
+import 'package:operation_veritas/audio/sounds.dart';
 import 'package:operation_veritas/auth_services/auth_controller.dart';
 import 'package:operation_veritas/change_notifier/money_controller.dart';
 import 'package:operation_veritas/change_notifier/stats_service.dart';
@@ -12,11 +14,11 @@ class TriviaService extends ChangeNotifier {
   final MoneyController? moneyController;
   final SettingsController? settingsController;
   final AuthController? authController;
+  final AudioController? audioController;
   final StatsService? statsService;
   final DatabaseReference _messagesRef = FirebaseDatabase.instance.ref().child(
     'trivia_messages',
   );
-  late final DatabaseReference _statsRef;
   final List<Message> _messages = [];
 
   bool _connected = false;
@@ -33,6 +35,7 @@ class TriviaService extends ChangeNotifier {
   Message? get getLastMessage => _lastMessage;
 
   TriviaService({
+    this.audioController,
     this.moneyController,
     this.settingsController,
     this.authController,
@@ -90,10 +93,6 @@ class TriviaService extends ChangeNotifier {
       statsService?.setPlayersCount(playerCountValue);
     } else if (playerCountValue is num) {
       statsService?.setPlayersCount(playerCountValue.toInt());
-    } else {
-      print(
-        'Warning: Unexpected type for player count: ${playerCountValue.runtimeType}',
-      );
     }
   }
 
@@ -143,6 +142,7 @@ class TriviaService extends ChangeNotifier {
         questionWinnerUid: message['questionWinnerUid'] ?? '',
         correctAnswerId: message['correctAnswerId'] ?? '',
       );
+      handleSfx(newMessage);
       if (newMessage.messageType == "question") {
         _activeQuestion = newMessage;
         setCurrentQuestionNumber(_activeQuestion?.badgeText ?? "");
@@ -151,7 +151,6 @@ class TriviaService extends ChangeNotifier {
         showAdWhenNeeded(newMessage);
         _activeQuestion = null;
       }
-      handleEffects(newMessage.questionWinnerUid);
       _lastMessage = newMessage;
       _messages.add(newMessage);
       notifyListeners();
@@ -160,9 +159,17 @@ class TriviaService extends ChangeNotifier {
     }
   }
 
-  void handleEffects(String questionWinnerUid) async {
-    if (questionWinnerUid == authController?.currentUser?.uid) {
+  void handleSfx(Message newMessage) async {
+    if (newMessage.questionWinnerUid == authController?.currentUser?.uid) {
       await HapticFeedback.heavyImpact();
+    } else if (newMessage.messageType == "question") {
+      if (newMessage.badgeText.contains("NEW ROUND")) {
+        audioController?.playSfx(SfxType.correct);
+      } else {
+        audioController?.playSfx(SfxType.bell);
+      }
+    } else if (newMessage.messageType == "round_end") {
+      audioController?.playSfx(SfxType.roundEnd);
     }
   }
 

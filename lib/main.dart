@@ -194,13 +194,29 @@ class MyApp extends StatelessWidget {
           ChangeNotifierProvider<AdsController?>.value(value: adsController),
           ChangeNotifierProvider(create: (context) => moneyController),
           ChangeNotifierProvider(create: (context) => authController),
-          ChangeNotifierProvider(
+          ChangeNotifierProxyProvider<AudioController, TriviaService>(
             create: (context) => TriviaService(
               moneyController: moneyController,
               settingsController: settingsController,
               authController: authController,
               statsService: statsService,
+              audioController: context.read<AudioController>(),
             ),
+            update: (context, audioController, triviaService) {
+              // If triviaService already exists, just return it (unless you need to update the audioController reference)
+              if (triviaService != null) {
+                return triviaService;
+              }
+
+              // Create new TriviaService with audioController dependency
+              return TriviaService(
+                moneyController: moneyController,
+                settingsController: settingsController,
+                authController: authController,
+                statsService: statsService,
+                audioController: audioController,
+              );
+            },
           ),
           ChangeNotifierProvider(
             create: (context) => BannerMessageVisibility(),
