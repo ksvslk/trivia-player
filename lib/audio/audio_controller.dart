@@ -3,9 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:flutter/widgets.dart';
+import 'package:flutter_soloud/flutter_soloud.dart';
 import 'package:logging/logging.dart';
 import 'package:operation_veritas/persistence/settings_controller.dart';
-import 'package:sound_effect/sound_effect.dart';
+import 'package:real_volume/real_volume.dart';
 
 import 'sounds.dart';
 
@@ -15,7 +16,12 @@ class AudioController {
 
   SettingsController? _settings;
   ValueNotifier<AppLifecycleState>? _lifecycleNotifier;
-  final _soundEffect = SoundEffect();
+
+  late AudioSource bell;
+  late AudioSource roundStart;
+  late AudioSource roundEnd;
+  late AudioSource send;
+  late AudioSource correct;
 
   AudioController({int polyphony = 2});
 
@@ -49,34 +55,63 @@ class AudioController {
     _log.info("dispose");
     _lifecycleNotifier?.removeListener(_handleAppLifecycle);
     _stopAllSound();
-    _soundEffect.release();
+    SoLoud.instance.deinit();
   }
 
   /// Preloads all sound effects.
   Future<void> initialize() async {
     _log.info('Preloading sound effects');
-    await _soundEffect.initialize();
-    await Future.wait(
-      SfxType.values
-          .expand(
-            (sfxType) => soundTypeToFilename(
-              sfxType,
-            ).map((path) => (sfxType: sfxType, path: path)),
-          )
-          .map(
-            (record) =>
-                _soundEffect.load(record.sfxType.name, 'assets/sfx/${record.path}'),
-          ),
-    );
+    await SoLoud.instance.init();
+    try {
+      bell = await SoLoud.instance.loadAsset('assets/sfx/bell.wav');
+      roundStart = await SoLoud.instance.loadAsset('assets/sfx/roundStart.wav');
+      roundEnd = await SoLoud.instance.loadAsset('assets/sfx/roundEnd.wav');
+      send = await SoLoud.instance.loadAsset('assets/sfx/send.wav');
+      correct = await SoLoud.instance.loadAsset('assets/sfx/correct.wav');
+    } on Exception catch (e) {
+      _log.severe("Error loading sound files", e);
+    }
   }
 
-  void playSfx(SfxType type) {
+  void playSfx(SfxType type) async {
+    _log.info('playSfx called for: ${type.name}');
 
+    RingerMode? ringerMode = await RealVolume.getRingerMode();
+    if (ringerMode == RingerMode.SILENT || ringerMode == RingerMode.VIBRATE) return;
+
+    // Check app setting first
     final soundsOn = _settings?.soundsOn.value ?? false;
+    _log.info('App soundsOn setting: $soundsOn');
     if (!soundsOn) {
+      _log.info('App sounds disabled in settings - not playing sound');
       return;
     }
-    _soundEffect.play(type.name);
+
+    // Check if app is in foreground (don't play sounds when backgrounded)
+    if (_lifecycleNotifier?.value != AppLifecycleState.resumed) {
+      _log.info('App not in foreground - not playing sound');
+      return;
+    }
+
+    _log.info('Playing sound effect: ${type.name}');
+
+    switch (type) {
+      case SfxType.bell:
+        SoLoud.instance.play(bell);
+        break;
+      case SfxType.roundStart:
+        SoLoud.instance.play(roundStart);
+        break;
+      case SfxType.roundEnd:
+        SoLoud.instance.play(roundEnd);
+        break;
+      case SfxType.send:
+        SoLoud.instance.play(send);
+        break;
+      case SfxType.correct:
+        SoLoud.instance.play(correct);
+        break;
+    }
   }
 
   void _handleAppLifecycle() {
@@ -95,10 +130,14 @@ class AudioController {
   }
 
   void _soundsOnHandler() {
-  
+    // Handle when sound settings change
+    final soundsOn = _settings?.soundsOn.value ?? false;
+    if (!soundsOn) {
+      _stopAllSound();
+    }
   }
 
-  void _stopAllSound() {
+  void _stopAllSound() async {
     _log.info('Stopping all sound');
   }
 }

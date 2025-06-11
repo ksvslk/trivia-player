@@ -4,9 +4,11 @@ List<String> soundTypeToFilename(SfxType type) {
       return const ['send.wav'];
     case SfxType.bell:
       return const ['bell.wav'];
-    case SfxType.correct:
-      return const ['correct.wav'];
+    case SfxType.roundStart:
+      return const ['roundStart.wav'];
     case SfxType.roundEnd:
+      return const ['roundEnd.wav'];
+    case SfxType.correct:
       return const ['roundEnd.wav'];
   }
 }
@@ -14,6 +16,7 @@ List<String> soundTypeToFilename(SfxType type) {
 enum SfxType {
   send,
   bell,
-  correct,
-  roundEnd
+  roundStart,
+  roundEnd,
+  correct
 }

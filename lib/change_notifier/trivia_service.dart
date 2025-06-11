@@ -161,10 +161,11 @@ class TriviaService extends ChangeNotifier {
 
   void handleSfx(Message newMessage) async {
     if (newMessage.questionWinnerUid == authController?.currentUser?.uid) {
+      audioController?.playSfx(SfxType.correct);
       await HapticFeedback.heavyImpact();
     } else if (newMessage.messageType == "question") {
       if (newMessage.badgeText.contains("NEW ROUND")) {
-        audioController?.playSfx(SfxType.correct);
+        audioController?.playSfx(SfxType.roundStart);
       } else {
         audioController?.playSfx(SfxType.bell);
       }
