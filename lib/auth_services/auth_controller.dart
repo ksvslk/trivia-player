@@ -22,6 +22,7 @@ class AuthController extends ChangeNotifier {
   User? _currentUser;
   String _playerName = "";
   bool _isGameServicesAvailable = false;
+  String? gameServicesPlayerId;
 
   AuthState get authState => _authState;
   User? get currentUser => _currentUser;
@@ -43,7 +44,8 @@ class AuthController extends ChangeNotifier {
 
       await gs.GamesServices.signIn();
       _log.info('Native Game Services sign-in initiated successfully.');
-      print("Player ID: ${await gs.GamesServices.getPlayerID()}");
+      gameServicesPlayerId = await gs.GamesServices.getPlayerID();
+      _log.info("ASFD PID:  $gameServicesPlayerId");
 
       final AuthCredential? credential = await _getPlatformCredential();
 
@@ -54,7 +56,7 @@ class AuthController extends ChangeNotifier {
 
         if (userCredential.user != null) {
           _log.info('Successfully signed into Firebase with Game Services.');
-          print("UID:  ${userCredential.user?.uid}");
+          _log.info("ASFD UID:  ${userCredential.user?.uid}");
           _currentUser = userCredential.user;
           _playerName = _currentUser?.displayName ?? "-";
           _authState = AuthState.authenticated;

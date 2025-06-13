@@ -14,6 +14,7 @@ class Message {
   final String photoUrl;
   final String questionWinnerUid;
   final String correctAnswerId;
+  final String? realPlayerId;
 
   Message(
       {required this.text,
@@ -30,5 +31,7 @@ class Message {
       required this.serverTime,
       required this.photoUrl,
       required this.questionWinnerUid,
-      required this.correctAnswerId});
+      required this.correctAnswerId,
+      required this.realPlayerId
+      });
 }

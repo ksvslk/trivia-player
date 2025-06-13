@@ -141,6 +141,7 @@ class TriviaService extends ChangeNotifier {
         photoUrl: message['photoUrl'] ?? '',
         questionWinnerUid: message['questionWinnerUid'] ?? '',
         correctAnswerId: message['correctAnswerId'] ?? '',
+        realPlayerId: authController?.gameServicesPlayerId
       );
       handleSfx(newMessage);
       if (newMessage.messageType == "question") {
