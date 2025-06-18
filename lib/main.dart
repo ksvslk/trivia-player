@@ -21,6 +21,7 @@ import 'package:operation_veritas/change_notifier/trivia_service.dart';
 import 'package:operation_veritas/constants.dart';
 import 'package:operation_veritas/home_screen.dart';
 import 'package:operation_veritas/l10n/app_localizations.dart';
+import 'package:operation_veritas/notification/notification_controller.dart';
 import 'package:provider/provider.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'dart:developer' as dev;
@@ -32,27 +33,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 const revenueCatGoogleApiKey = "goog_KHFjwrHpqZqQHQJeIbeSgiBqRQc";
-
-/*
-void setupConnectionTracking() {
-  final connectedRef = FirebaseDatabase.instance.ref(".info/connected");
-  final playerCountRef = FirebaseDatabase.instance.ref("player_count");
-
-  connectedRef.onValue.listen((event) {
-    final connected = event.snapshot.value as bool? ?? false;
-    if (connected) {
-      // Setup disconnect handler first
-      playerCountRef.onDisconnect().set(ServerValue.increment(-1));
-
-      // Correct transaction return type
-      playerCountRef.runTransaction((Object? currentValue) {
-        final currentCount = (currentValue ?? 0) as int;
-        return Transaction.success(currentCount + 1);
-      });
-    }
-  });
-}
-*/
 
 Future<void> setUpRemoteConfig() async {
   final remoteConfig = FirebaseRemoteConfig.instance;
@@ -229,6 +209,39 @@ class MyApp extends StatelessWidget {
               return blockedPlayers;
             },
           ),
+          ProxyProvider3<
+            SettingsController,
+            ValueNotifier<AppLifecycleState>,
+            AuthController,
+            NotificationController
+          >(
+            lazy: false,
+
+            // 'create' is called ONLY ONCE to build the instance. This is correct.
+            create: (context) {
+              final nc = NotificationController();
+              // Fire-and-forget the async initialization
+              nc.initialize();
+              return nc;
+            },
+
+            // 'update' is called initially and whenever ANY of the 3 dependencies change.
+            // It REUSES the instance created above.
+            update: (context, settings, lifecycle, auth, notificationController) {
+              if (notificationController == null) {
+                throw ArgumentError.notNull();
+              }
+
+              // Update the controller with the latest dependencies.
+              notificationController.attachSettings(settings);
+              notificationController.attachLifecycleNotifier(lifecycle);
+
+              // This is the key change that enables the direct, widget-less listening.
+              notificationController.linkAuthController(auth);
+
+              return notificationController;
+            },
+          ),
         ],
         builder: (context, child) {
           final settingsController = context.read<SettingsController>();
@@ -273,11 +286,11 @@ class MyApp extends StatelessWidget {
                 ],
                 supportedLocales: [
                   Locale('en'),
-                  Locale('fr'),
-                  Locale('it'),
-                  Locale('de'),
-                  Locale('es'),
-                  Locale('et'),
+                  //Locale('fr'),
+                  //Locale('it'),
+                  //Locale('de'),
+                  //Locale('es'),
+                  //Locale('et'),
                 ],
                 debugShowCheckedModeBanner: false,
                 theme: lightTheme,

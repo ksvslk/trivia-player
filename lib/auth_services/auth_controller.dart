@@ -45,7 +45,6 @@ class AuthController extends ChangeNotifier {
       await gs.GamesServices.signIn();
       _log.info('Native Game Services sign-in initiated successfully.');
       gameServicesPlayerId = await gs.GamesServices.getPlayerID();
-      _log.info("ASFD PID:  $gameServicesPlayerId");
 
       final AuthCredential? credential = await _getPlatformCredential();
 
@@ -132,6 +131,7 @@ class AuthController extends ChangeNotifier {
   bool get isAuthenticated =>
       _authState == AuthState.authenticated && _currentUser != null;
 
+  /*
   Future<int> _getPlayerQuestionScore() async {
     final result = await Leaderboards.getPlayerScoreObject(
       iOSLeaderboardID: iosQuestionLeaderboard,
@@ -184,9 +184,10 @@ class AuthController extends ChangeNotifier {
       ),
     );
   }
+*/
 
   void submitRoundScore(int newScore) async {
-   await Leaderboards.submitScore(
+    await Leaderboards.submitScore(
       score: Score(
         androidLeaderboardID: androidRoundLeaderboard,
         iOSLeaderboardID: iosdRoundLeaderboard,
@@ -195,8 +196,8 @@ class AuthController extends ChangeNotifier {
     );
   }
 
-    void submitQuestionScore(int newScore) async {
-   await Leaderboards.submitScore(
+  void submitQuestionScore(int newScore) async {
+    await Leaderboards.submitScore(
       score: Score(
         androidLeaderboardID: androidQuestionLeaderboard,
         iOSLeaderboardID: iosQuestionLeaderboard,
