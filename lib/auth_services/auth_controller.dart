@@ -56,7 +56,6 @@ class AuthController extends ChangeNotifier {
 
         if (userCredential.user != null) {
           _log.info('Successfully signed into Firebase with Game Services.');
-          _log.info("ASFD UID:  ${userCredential.user?.uid}");
           _currentUser = userCredential.user;
           _playerName = _currentUser?.displayName ?? "-";
           _authState = AuthState.authenticated;
@@ -140,7 +139,6 @@ class AuthController extends ChangeNotifier {
       scope: PlayerScope.global,
       timeScope: TimeScope.allTime,
     );
-    _log.info("Score: ${result?.rawScore}");
     var currentScore = 0;
     if (result != null) {
       currentScore = result.rawScore;
@@ -173,8 +171,6 @@ class AuthController extends ChangeNotifier {
         value: newScore,
       ),
     );
-    _log.info("Old question score: $currentQuestionScore");
-    _log.info("New question score: $newScore");
   }
 
   void increaseRoundScore() async {
@@ -187,8 +183,6 @@ class AuthController extends ChangeNotifier {
         value: newScore,
       ),
     );
-    _log.info("Old round score: $currentRoundScore");
-    _log.info("New round score: $newScore");
   }
 
   void submitRoundScore(int newScore) async {

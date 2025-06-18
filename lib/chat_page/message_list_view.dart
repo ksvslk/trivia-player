@@ -49,7 +49,7 @@ class _MessageListViewState extends State<MessageListView>
       parent: _animationController!,
       curve: Curves.easeOut,
     );
-    
+
     // Add listener to track animation completion
     _animationController!.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
@@ -61,12 +61,11 @@ class _MessageListViewState extends State<MessageListView>
   @override
   void didUpdateWidget(MessageListView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    
+
     // Check if a new message was added
-    if (widget.originalMessages.isNotEmpty && 
+    if (widget.originalMessages.isNotEmpty &&
         oldWidget.originalMessages.isNotEmpty &&
         widget.originalMessages.length > oldWidget.originalMessages.length) {
-      
       final newLastMessage = widget.originalMessages.last;
       if (_lastMessageId != newLastMessage.id) {
         _lastMessageId = newLastMessage.id;
@@ -80,8 +79,9 @@ class _MessageListViewState extends State<MessageListView>
       if (_lastMessageId != currentLastMessage.id) {
         _lastMessageId = currentLastMessage.id;
         // If this is just a theme change, mark as already animated
-        if (oldWidget.originalMessages.isNotEmpty && 
-            oldWidget.originalMessages.length == widget.originalMessages.length) {
+        if (oldWidget.originalMessages.isNotEmpty &&
+            oldWidget.originalMessages.length ==
+                widget.originalMessages.length) {
           _hasAnimated = true;
         }
       }
@@ -105,19 +105,16 @@ class _MessageListViewState extends State<MessageListView>
     );
 
     // Apply animation only to the newest message that hasn't been animated yet
-    if (isNewestMessage && 
-        _animationController != null && 
-        _fadeAnimation != null && 
+    if (isNewestMessage &&
+        _animationController != null &&
+        _fadeAnimation != null &&
         !_hasAnimated) {
       messageBubble = AnimatedBuilder(
         animation: _animationController!,
         builder: (context, child) {
           return Transform.scale(
             scale: 0.8 + (0.2 * _fadeAnimation!.value),
-            child: Opacity(
-              opacity: _fadeAnimation!.value,
-              child: child,
-            ),
+            child: Opacity(opacity: _fadeAnimation!.value, child: child),
           );
         },
         child: messageBubble,
@@ -129,11 +126,13 @@ class _MessageListViewState extends State<MessageListView>
       messageBubble = VisibilityDetector(
         key: Key('last-question-${message.id}'),
         onVisibilityChanged: (visibilityInfo) {
-          final visiblePercentage = visibilityInfo.visibleFraction * 100;
-          final isVisible = visiblePercentage > 75;
-          context
-              .read<BannerMessageVisibility>()
-              .setQuestionVisibilityOnScreen(isVisible);
+          if (mounted) {
+            final visiblePercentage = visibilityInfo.visibleFraction * 100;
+            final isVisible = visiblePercentage > 75;
+            context
+                .read<BannerMessageVisibility>()
+                .setQuestionVisibilityOnScreen(isVisible);
+          }
         },
         child: ShaderMask(
           shaderCallback: (bounds) => LinearGradient(
@@ -155,46 +154,52 @@ class _MessageListViewState extends State<MessageListView>
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<BlockedPlayers>(builder:
-        (BuildContext context, BlockedPlayers blockedPlayers, Widget? child) {
-      final messages = widget.originalMessages
-          .where(
-              (el) => !blockedPlayers.blockedPlayers.containsKey(el.playerUid))
-          .toList();
-      final colorScheme = Theme.of(context).colorScheme;
-      
-      return ListView.builder(
-        controller: widget.scrollController,
-        reverse: true,
-        shrinkWrap: true,
-        padding: const EdgeInsets.only(top: 8.0, bottom: 4.0),
-        itemCount: messages.length,
-        itemBuilder: (context, index) {
-          final message = messages[messages.length - index - 1];
-          final messageBefore = messages.length - index - 2 >= 0
-              ? messages.elementAt(messages.length - index - 2)
-              : message;
-          final isCurrentUser = message.playerUid == widget.currentUserId;
-          final isLastQuestion = widget.activeQuestion?.id == message.id;
-          final isNewestMessage = message.id == _lastMessageId;
+    return Consumer<BlockedPlayers>(
+      builder:
+          (BuildContext context, BlockedPlayers blockedPlayers, Widget? child) {
+            final messages = widget.originalMessages
+                .where(
+                  (el) =>
+                      !blockedPlayers.blockedPlayers.containsKey(el.playerUid),
+                )
+                .toList();
+            final colorScheme = Theme.of(context).colorScheme;
 
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            context
-                .read<BannerMessageVisibility>()
-                .setIsRoundBreak(widget.activeQuestion == null);
-          });
+            return ListView.builder(
+              controller: widget.scrollController,
+              reverse: true,
+              shrinkWrap: true,
+              padding: const EdgeInsets.only(top: 8.0, bottom: 4.0),
+              itemCount: messages.length,
+              itemBuilder: (context, index) {
+                final message = messages[messages.length - index - 1];
+                final messageBefore = messages.length - index - 2 >= 0
+                    ? messages.elementAt(messages.length - index - 2)
+                    : message;
+                final isCurrentUser = message.playerUid == widget.currentUserId;
+                final isLastQuestion = widget.activeQuestion?.id == message.id;
+                final isNewestMessage = message.id == _lastMessageId;
 
-          return _buildMessageBubble(
-            message: message,
-            messageBefore: messageBefore,
-            isCurrentUser: isCurrentUser,
-            isLastQuestion: isLastQuestion,
-            colorScheme: colorScheme,
-            isNewestMessage: isNewestMessage,
-          );
-        },
-      );
-    });
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) {
+                    context.read<BannerMessageVisibility>().setIsRoundBreak(
+                      widget.activeQuestion == null,
+                    );
+                  }
+                });
+
+                return _buildMessageBubble(
+                  message: message,
+                  messageBefore: messageBefore,
+                  isCurrentUser: isCurrentUser,
+                  isLastQuestion: isLastQuestion,
+                  colorScheme: colorScheme,
+                  isNewestMessage: isNewestMessage,
+                );
+              },
+            );
+          },
+    );
   }
 
   @override
