@@ -101,6 +101,18 @@ class TriviaService extends ChangeNotifier {
 
     final stats = Map<dynamic, dynamic>.from(event.snapshot.value as Map);
     final dynamic streakDynamic = stats["streak"];
+    final dynamic publicScore = stats["publicScore"];
+
+    final publicQuestionScore = publicScore["publicQuestionScore"];
+    final publicRoundScore = publicScore["publicRoundScore"];
+    statsService?.setPublicQuestionScore(publicQuestionScore);
+    statsService?.setPublicRoundScore(publicRoundScore);
+    if (publicQuestionScore != null) {
+      authController?.submitQuestionScore(publicQuestionScore);
+    }
+    if (publicRoundScore != null) {
+      authController?.submitRoundScore(publicRoundScore);
+    }
 
     List<int> streak;
     if (streakDynamic is List) {

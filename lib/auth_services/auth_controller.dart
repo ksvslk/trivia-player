@@ -190,4 +190,24 @@ class AuthController extends ChangeNotifier {
     _log.info("Old round score: $currentRoundScore");
     _log.info("New round score: $newScore");
   }
+
+  void submitRoundScore(int newScore) async {
+   await Leaderboards.submitScore(
+      score: Score(
+        androidLeaderboardID: androidRoundLeaderboard,
+        iOSLeaderboardID: iosdRoundLeaderboard,
+        value: newScore,
+      ),
+    );
+  }
+
+    void submitQuestionScore(int newScore) async {
+   await Leaderboards.submitScore(
+      score: Score(
+        androidLeaderboardID: androidQuestionLeaderboard,
+        iOSLeaderboardID: iosQuestionLeaderboard,
+        value: newScore,
+      ),
+    );
+  }
 }

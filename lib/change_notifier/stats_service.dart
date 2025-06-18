@@ -7,6 +7,12 @@ class StatsService extends ChangeNotifier {
   int _playerCount = 0;
   int getPlayersCount() => _playerCount;
 
+  int _publicQuestionScore = 0;
+  int getQuestionScore() => _publicQuestionScore;
+
+  int _publicRoundScore = 0;
+  int getRoundScore() => _publicRoundScore;
+
   int _questionNumber = 0;
   int getQuestionNumber() => _questionNumber;
 
@@ -22,6 +28,16 @@ class StatsService extends ChangeNotifier {
 
   setPlayersCount(int count) {
     _playerCount = count;
+    notifyListeners();
+  }
+
+  setPublicRoundScore(int roundScore) {
+    _publicRoundScore = roundScore;
+    notifyListeners();
+  }
+
+  setPublicQuestionScore(int questionScore) {
+    _publicQuestionScore = questionScore;
     notifyListeners();
   }
 

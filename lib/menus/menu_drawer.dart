@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:operation_veritas/auth_services/auth_controller.dart';
 import 'package:operation_veritas/change_notifier/money_controller.dart';
 import 'package:operation_veritas/change_notifier/blocked_players.dart';
+import 'package:operation_veritas/change_notifier/stats_service.dart';
 import 'package:operation_veritas/l10n/app_localizations.dart';
 import 'package:operation_veritas/persistence/settings_controller.dart';
 import 'package:provider/provider.dart';
@@ -68,6 +69,16 @@ class _InfoDisplayState extends State<InfoDisplay> {
             ),
             textAlign: TextAlign.center,
           ),
+          Consumer<StatsService>(
+            builder: (context, stats, child) {
+              return Column(
+                children: [
+                  Text("Rounds: ${stats.getRoundScore()}"),
+                  Text("Questions: ${stats.getQuestionScore()}"),
+                ],
+              );
+            },
+          ),
         ],
       ),
     );
@@ -77,14 +88,14 @@ class _InfoDisplayState extends State<InfoDisplay> {
 class MenuDrawer extends StatelessWidget {
   final GlobalKey<NavigatorState> parentNavigatorKey;
 
-  const MenuDrawer({
-    super.key,
-    required this.parentNavigatorKey,
-  });
+  const MenuDrawer({super.key, required this.parentNavigatorKey});
 
   // Helper method to get color circle button
   Widget _buildColorButton(
-      Color color, SettingsController settings, BuildContext context) {
+    Color color,
+    SettingsController settings,
+    BuildContext context,
+  ) {
     bool isSelected = settings.seedColor.value == color.toARGB32();
 
     return InkWell(
@@ -99,18 +110,17 @@ class MenuDrawer extends StatelessWidget {
               radius: 15,
               backgroundColor: color,
               child: isSelected
-                  ? Icon(Icons.check,
+                  ? Icon(
+                      Icons.check,
                       color: color.computeLuminance() > 0.5
                           ? Colors.black
                           : Colors.white,
-                      size: 16)
+                      size: 16,
+                    )
                   : null,
             ),
             const SizedBox(width: 16),
-            Text(
-              _getColorName(color),
-              style: const TextStyle(fontSize: 14),
-            ),
+            Text(_getColorName(color), style: const TextStyle(fontSize: 14)),
           ],
         ),
       ),
@@ -143,7 +153,6 @@ class MenuDrawer extends StatelessWidget {
 
   // Helper to build blocked player list
   Widget _buildBlockedPlayersSection(BuildContext context) {
-
     final local = AppLocalizations.of(context)!;
 
     return Consumer<BlockedPlayers>(
@@ -153,10 +162,7 @@ class MenuDrawer extends StatelessWidget {
             padding: EdgeInsets.all(16.0),
             child: Text(
               local.noBlockedPlayers,
-              style: TextStyle(
-                fontStyle: FontStyle.italic,
-                color: Colors.grey,
-              ),
+              style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey),
             ),
           );
         }
@@ -175,10 +181,7 @@ class MenuDrawer extends StatelessWidget {
               contentPadding: const EdgeInsets.symmetric(horizontal: 16.0),
               title: Text(
                 name,
-                style: const TextStyle(
-                  fontFamily: 'Inter',
-                  fontSize: 14,
-                ),
+                style: const TextStyle(fontFamily: 'Inter', fontSize: 14),
               ),
               trailing: IconButton(
                 visualDensity: VisualDensity.compact,
@@ -210,10 +213,7 @@ class MenuDrawer extends StatelessWidget {
               color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
               child: Text(
                 local.menu,
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
             ),
 
@@ -234,7 +234,8 @@ class MenuDrawer extends StatelessWidget {
               builder: (context, money, child) {
                 return ListTile(
                   leading: Icon(
-                      money.isSubscribed() ? Icons.diamond : Icons.diamond),
+                    money.isSubscribed() ? Icons.diamond : Icons.diamond,
+                  ),
                   title: money.isSubscribed()
                       ? Text(local.youOwnPremium)
                       : Text(local.premiumInfo),
@@ -266,25 +267,30 @@ class MenuDrawer extends StatelessWidget {
                         return Column(
                           children: [
                             _buildColorButton(
-                                const Color.fromARGB(255, 255, 67, 104),
-                                settings,
-                                context),
+                              const Color.fromARGB(255, 255, 67, 104),
+                              settings,
+                              context,
+                            ),
                             _buildColorButton(
-                                const Color.fromARGB(255, 242, 209, 76),
-                                settings,
-                                context),
+                              const Color.fromARGB(255, 242, 209, 76),
+                              settings,
+                              context,
+                            ),
                             _buildColorButton(
-                                const Color.fromARGB(255, 193, 226, 59),
-                                settings,
-                                context),
+                              const Color.fromARGB(255, 193, 226, 59),
+                              settings,
+                              context,
+                            ),
                             _buildColorButton(
-                                const Color.fromARGB(255, 0, 136, 255),
-                                settings,
-                                context),
+                              const Color.fromARGB(255, 0, 136, 255),
+                              settings,
+                              context,
+                            ),
                             _buildColorButton(
-                                const Color.fromARGB(255, 255, 87, 216),
-                                settings,
-                                context),
+                              const Color.fromARGB(255, 255, 87, 216),
+                              settings,
+                              context,
+                            ),
                           ],
                         );
                       },
@@ -304,9 +310,7 @@ class MenuDrawer extends StatelessWidget {
                   },
                   leading: const Icon(Icons.block),
                   title: Text(local.blockedPlayers),
-                  children: [
-                    _buildBlockedPlayersSection(context),
-                  ],
+                  children: [_buildBlockedPlayersSection(context)],
                 );
               },
             ),
