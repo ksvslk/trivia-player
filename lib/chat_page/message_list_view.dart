@@ -30,12 +30,20 @@ class _MessageListViewState extends State<MessageListView>
     with TickerProviderStateMixin {
   AnimationController? _animationController;
   Animation<double>? _fadeAnimation;
-  String? _lastMessageId;
-  bool _hasAnimated = false; // Track if animation has completed
+  // This now tracks the ID of the message that is intended to be animated.
+  String? _lastMessageIdToAnimate;
+  // No longer need _hasAnimated, the controller's state is sufficient.
 
   @override
   void initState() {
     super.initState();
+    
+    // Initialize _lastMessageIdToAnimate with the last message on initial build.
+    // This prevents the first message from animating when the view appears.
+    if (widget.originalMessages.isNotEmpty) {
+      _lastMessageIdToAnimate = widget.originalMessages.last.id;
+    }
+    
     _initializeAnimation();
   }
 
@@ -49,43 +57,28 @@ class _MessageListViewState extends State<MessageListView>
       parent: _animationController!,
       curve: Curves.easeOut,
     );
-
-    // Add listener to track animation completion
-    _animationController!.addStatusListener((status) {
-      if (status == AnimationStatus.completed) {
-        _hasAnimated = true;
-      }
-    });
   }
 
   @override
   void didUpdateWidget(MessageListView oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    // Check if a new message was added
-    if (widget.originalMessages.isNotEmpty &&
-        oldWidget.originalMessages.isNotEmpty &&
-        widget.originalMessages.length > oldWidget.originalMessages.length) {
-      final newLastMessage = widget.originalMessages.last;
-      if (_lastMessageId != newLastMessage.id) {
-        _lastMessageId = newLastMessage.id;
-        _hasAnimated = false; // Reset animation state
-        _initializeAnimation();
-        _animationController!.forward();
-      }
-    } else if (widget.originalMessages.isNotEmpty) {
-      // Initialize with the current last message
-      final currentLastMessage = widget.originalMessages.last;
-      if (_lastMessageId != currentLastMessage.id) {
-        _lastMessageId = currentLastMessage.id;
-        // If this is just a theme change, mark as already animated
-        if (oldWidget.originalMessages.isNotEmpty &&
-            oldWidget.originalMessages.length ==
-                widget.originalMessages.length) {
-          _hasAnimated = true;
-        }
-      }
+    final newMessages = widget.originalMessages;
+    final oldMessages = oldWidget.originalMessages;
+
+    // We only care about one condition for animation: a new message has been added.
+    // This is determined by the list growing.
+    if (newMessages.isNotEmpty && newMessages.length > oldMessages.length) {
+      final newLastMessage = newMessages.last;
+
+      // Update the ID of the message we intend to animate and play the animation.
+      _lastMessageIdToAnimate = newLastMessage.id;
+      _animationController?.forward(from: 0.0); // Reset and play
     }
+    
+    // The problematic `else if` block has been removed.
+    // The widget's internal state (_lastMessageIdToAnimate) is no longer
+    // incorrectly modified when the list shrinks or changes in other ways.
   }
 
   Widget _buildMessageBubble({
@@ -94,7 +87,6 @@ class _MessageListViewState extends State<MessageListView>
     required bool isCurrentUser,
     required bool isLastQuestion,
     required ColorScheme colorScheme,
-    required bool isNewestMessage,
   }) {
     Widget messageBubble = MessageBubble(
       message: message,
@@ -103,15 +95,22 @@ class _MessageListViewState extends State<MessageListView>
       playerId: widget.currentUserId,
       formatTimestamp: widget.formatTimestamp,
     );
+    
+    // Determine if this specific message bubble should be animated.
+    // It should only animate if its ID matches the target ID and the animation is running.
+    final bool shouldAnimate = message.id == _lastMessageIdToAnimate;
 
     // Apply animation only to the newest message that hasn't been animated yet
-    if (isNewestMessage &&
+    if (shouldAnimate &&
         _animationController != null &&
-        _fadeAnimation != null &&
-        !_hasAnimated) {
+        _fadeAnimation != null) {
       messageBubble = AnimatedBuilder(
         animation: _animationController!,
         builder: (context, child) {
+          // Check if controller is still active before building transform
+          if (!_animationController!.isAnimating && !_animationController!.isCompleted) {
+            return child!;
+          }
           return Transform.scale(
             scale: 0.8 + (0.2 * _fadeAnimation!.value),
             child: Opacity(opacity: _fadeAnimation!.value, child: child),
@@ -121,7 +120,7 @@ class _MessageListViewState extends State<MessageListView>
       );
     }
 
-    // Apply shader mask for last question
+    // Apply shader mask for last question (no changes here)
     if (isLastQuestion) {
       messageBubble = VisibilityDetector(
         key: Key('last-question-${message.id}'),
@@ -157,48 +156,48 @@ class _MessageListViewState extends State<MessageListView>
     return Consumer<BlockedPlayers>(
       builder:
           (BuildContext context, BlockedPlayers blockedPlayers, Widget? child) {
-            final messages = widget.originalMessages
-                .where(
-                  (el) =>
-                      !blockedPlayers.blockedPlayers.containsKey(el.playerUid),
-                )
-                .toList();
-            final colorScheme = Theme.of(context).colorScheme;
+        final messages = widget.originalMessages
+            .where(
+              (el) =>
+                  !blockedPlayers.blockedPlayers.containsKey(el.playerUid),
+            )
+            .toList();
+        final colorScheme = Theme.of(context).colorScheme;
 
-            return ListView.builder(
-              controller: widget.scrollController,
-              reverse: true,
-              shrinkWrap: true,
-              padding: const EdgeInsets.only(top: 8.0, bottom: 4.0),
-              itemCount: messages.length,
-              itemBuilder: (context, index) {
-                final message = messages[messages.length - index - 1];
-                final messageBefore = messages.length - index - 2 >= 0
-                    ? messages.elementAt(messages.length - index - 2)
-                    : message;
-                final isCurrentUser = message.playerUid == widget.currentUserId;
-                final isLastQuestion = widget.activeQuestion?.id == message.id;
-                final isNewestMessage = message.id == _lastMessageId;
+        return ListView.builder(
+          controller: widget.scrollController,
+          reverse: true,
+          shrinkWrap: true,
+          padding: const EdgeInsets.only(top: 8.0, bottom: 4.0),
+          itemCount: messages.length,
+          itemBuilder: (context, index) {
+            final message = messages[messages.length - index - 1];
+            final messageBefore = messages.length - index - 2 >= 0
+                ? messages.elementAt(messages.length - index - 2)
+                : message;
+            final isCurrentUser = message.playerUid == widget.currentUserId;
+            final isLastQuestion = widget.activeQuestion?.id == message.id;
+            
+            // The `isNewestMessage` flag is no longer needed here for animation logic.
 
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (mounted) {
-                    context.read<BannerMessageVisibility>().setIsRoundBreak(
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) {
+                context.read<BannerMessageVisibility>().setIsRoundBreak(
                       widget.activeQuestion == null,
                     );
-                  }
-                });
+              }
+            });
 
-                return _buildMessageBubble(
-                  message: message,
-                  messageBefore: messageBefore,
-                  isCurrentUser: isCurrentUser,
-                  isLastQuestion: isLastQuestion,
-                  colorScheme: colorScheme,
-                  isNewestMessage: isNewestMessage,
-                );
-              },
+            return _buildMessageBubble(
+              message: message,
+              messageBefore: messageBefore,
+              isCurrentUser: isCurrentUser,
+              isLastQuestion: isLastQuestion,
+              colorScheme: colorScheme,
             );
           },
+        );
+      },
     );
   }
 

@@ -33,7 +33,7 @@ class _InfoDisplayState extends State<InfoDisplay> {
     if (mounted) {
       setState(() {
         _version =
-            '${AppLocalizations.of(context)!.versionLoading}: ${packageInfo.version} (${packageInfo.buildNumber})';
+            '${AppLocalizations.of(context)!.version}: ${packageInfo.version} (${packageInfo.buildNumber})';
       });
     }
   }
@@ -56,28 +56,29 @@ class _InfoDisplayState extends State<InfoDisplay> {
                   fontFamily: 'Inter',
                   color: Colors.grey[600],
                 ),
-                textAlign: TextAlign.center,
               );
             },
           ),
+          Consumer<StatsService>(
+            builder: (context, stats, child) {
+              return Text(
+                "Round wins: ${stats.getRoundScore()}\nQuestion wins: ${stats.getQuestionScore()}",
+                style: TextStyle(
+                  fontSize: 12,
+                  fontFamily: 'Inter',
+                  color: Colors.grey[600],
+                ),
+              );
+            },
+          ),
+          Text(""),
           Text(
             _version,
             style: TextStyle(
               fontSize: 12,
               fontFamily: 'Inter',
-              color: Colors.grey[600],
+              color: Colors.grey[700],
             ),
-            textAlign: TextAlign.center,
-          ),
-          Consumer<StatsService>(
-            builder: (context, stats, child) {
-              return Column(
-                children: [
-                  Text("Rounds: ${stats.getRoundScore()}"),
-                  Text("Questions: ${stats.getQuestionScore()}"),
-                ],
-              );
-            },
           ),
         ],
       ),

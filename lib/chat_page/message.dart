@@ -10,7 +10,6 @@ class Message {
   final String playerUid;
   final int questionStartTime;
   final int questionEndTime;
-  final int serverTime;
   final String photoUrl;
   final String questionWinnerUid;
   final String correctAnswerId;
@@ -28,7 +27,6 @@ class Message {
       required this.playerUid,
       required this.questionStartTime,
       required this.questionEndTime,
-      required this.serverTime,
       required this.photoUrl,
       required this.questionWinnerUid,
       required this.correctAnswerId,

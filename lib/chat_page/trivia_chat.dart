@@ -20,7 +20,6 @@ class TriviaChat extends StatefulWidget {
 }
 
 class _TriviaChatState extends State<TriviaChat> {
-  final Logger _log = Logger('TriviaChat');
 
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();

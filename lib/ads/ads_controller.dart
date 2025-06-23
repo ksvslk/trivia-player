@@ -43,7 +43,6 @@ class AdsController extends ChangeNotifier {
   }
 
   Future<void> initialize() async {
-    _log.info('initialize');
     await _instance.initialize();
     Future<void>.delayed(const Duration(seconds: 1)).then((_) {
       return loadAd();
@@ -60,7 +59,6 @@ class AdsController extends ChangeNotifier {
         request: const AdRequest(),
         rewardedAdLoadCallback: RewardedAdLoadCallback(
           onAdLoaded: (ad) {
-            _log.info('preloaded rewarded ad loaded.');
             _rewardedRetryCount = 0; // Reset retry count on success
             ad.fullScreenContentCallback = FullScreenContentCallback(
                 // Called when the ad showed the full screen content.
@@ -80,19 +78,15 @@ class AdsController extends ChangeNotifier {
                 // Called when a click is recorded for an ad.
                 onAdClicked: (ad) {});
 
-            _log.info('$ad loaded.');
             // Keep a reference to the ad so you can show it later.
             rewardedAd = ad;
             notifyListeners();
           },
           // Called when an ad request failed.
           onAdFailedToLoad: (LoadAdError error) async {
-            _log.info('preloaded rewarded ad not loaded - $error');
             if (_rewardedRetryCount < _maxRetryCount) {
               _rewardedRetryCount++;
               final delay = _initialDelay * pow(2, _rewardedRetryCount - 1);
-              _log.info(
-                  'Retrying rewarded ad load in ${delay.inSeconds} seconds...');
               await Future.delayed(delay);
               loadAd();
             } else {
@@ -118,13 +112,10 @@ class AdsController extends ChangeNotifier {
         var status = await ConsentInformation.instance.getConsentStatus();
         if (status == ConsentStatus.obtained ||
             status == ConsentStatus.notRequired) {
-          _log.log(Level.INFO,
-              'Consent status: $status, initializing ads - no need to load form.');
           initialize();
           return;
         }
         if (await ConsentInformation.instance.isConsentFormAvailable()) {
-          _log.log(Level.INFO, 'Consent form available, loading form.');
           loadForm();
         }
       },
@@ -161,8 +152,6 @@ class AdsController extends ChangeNotifier {
           );
         } else if (status == ConsentStatus.obtained ||
             status == ConsentStatus.notRequired) {
-          _log.log(
-              Level.INFO, 'Consent status: $status. Initializing mobile ads.');
           initialize();
         }
       },

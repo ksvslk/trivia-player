@@ -28,6 +28,7 @@ class MoneyController extends ChangeNotifier {
   void _listenCustomerInfoUpdates() {
     Purchases.addCustomerInfoUpdateListener((info) {
       _customerInfo = info;
+       _log.info(Level.INFO, "_customerInfo: $_customerInfo");
       notifyListeners();
     });
   }
@@ -36,6 +37,7 @@ class MoneyController extends ChangeNotifier {
     final products = await Purchases.getProducts(
         <String>["com.indest.triviaplayer.premium"]);
     subscriptionOption = products.first.subscriptionOptions?.first;
+    _log.info(Level.INFO, "subscriptionOption: $subscriptionOption");
     notifyListeners();
   }
 

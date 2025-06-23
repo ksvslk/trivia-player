@@ -52,7 +52,6 @@ class AudioController {
   }
 
   void dispose() {
-    _log.info("dispose");
     _lifecycleNotifier?.removeListener(_handleAppLifecycle);
     _stopAllSound();
     SoLoud.instance.deinit();
@@ -60,7 +59,6 @@ class AudioController {
 
   /// Preloads all sound effects.
   Future<void> initialize() async {
-    _log.info('Preloading sound effects');
     await SoLoud.instance.init();
     try {
       bell = await SoLoud.instance.loadAsset('assets/sfx/bell.wav');
@@ -74,26 +72,18 @@ class AudioController {
   }
 
   void playSfx(SfxType type) async {
-    _log.info('playSfx called for: ${type.name}');
-
     RingerMode? ringerMode = await RealVolume.getRingerMode();
     if (ringerMode == RingerMode.SILENT || ringerMode == RingerMode.VIBRATE) return;
-
     // Check app setting first
     final soundsOn = _settings?.soundsOn.value ?? false;
-    _log.info('App soundsOn setting: $soundsOn');
     if (!soundsOn) {
-      _log.info('App sounds disabled in settings - not playing sound');
       return;
     }
 
     // Check if app is in foreground (don't play sounds when backgrounded)
     if (_lifecycleNotifier?.value != AppLifecycleState.resumed) {
-      _log.info('App not in foreground - not playing sound');
       return;
     }
-
-    _log.info('Playing sound effect: ${type.name}');
 
     switch (type) {
       case SfxType.bell:
@@ -138,6 +128,5 @@ class AudioController {
   }
 
   void _stopAllSound() async {
-    _log.info('Stopping all sound');
   }
 }

@@ -1,9 +1,6 @@
 import 'dart:io';
-import 'dart:math';
 
 import 'package:firebase_app_check/firebase_app_check.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -21,7 +18,6 @@ import 'package:operation_veritas/change_notifier/trivia_service.dart';
 import 'package:operation_veritas/constants.dart';
 import 'package:operation_veritas/home_screen.dart';
 import 'package:operation_veritas/l10n/app_localizations.dart';
-import 'package:operation_veritas/notification/notification_controller.dart';
 import 'package:provider/provider.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'dart:developer' as dev;
@@ -31,8 +27,6 @@ import 'persistence/settings_controller.dart';
 import 'audio/audio_controller.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-
-const revenueCatGoogleApiKey = "goog_KHFjwrHpqZqQHQJeIbeSgiBqRQc";
 
 Future<void> setUpRemoteConfig() async {
   final remoteConfig = FirebaseRemoteConfig.instance;
@@ -46,12 +40,12 @@ Future<void> setUpRemoteConfig() async {
 }
 
 Future<void> initPlatformState() async {
-  await Purchases.setLogLevel(LogLevel.debug);
+  await Purchases.setLogLevel(LogLevel.verbose);
   PurchasesConfiguration configuration;
   if (Platform.isAndroid) {
     configuration = PurchasesConfiguration("goog_KHFjwrHpqZqQHQJeIbeSgiBqRQc");
   } else {
-    configuration = PurchasesConfiguration("");
+    configuration = PurchasesConfiguration("appl_HKKGPRhOttwWOsPdUwLyvJcmwQn");
   }
   await Purchases.configure(configuration);
 }
@@ -83,21 +77,18 @@ Future<void> main() async {
     // 2. Safety Net provider
     // 3. Play Integrity provider
     androidProvider: AndroidProvider
-        .debug, //TODO: Change back to in production: AndroidProvider.playIntegrity,
+        .playIntegrity, //TODO: Change back to in production: AndroidProvider.playIntegrity,
     // Default provider for iOS/macOS is the Device Check provider. You can use the "AppleProvider" enum to choose
     // your preferred provider. Choose from:
     // 1. Debug provider
     // 2. Device Check provider
     // 3. App Attest provider
     // 4. App Attest provider with fallback to Device Check provider (App Attest provider is only available on iOS 14.0+, macOS 14.0+)
-    appleProvider: AppleProvider.appAttest,
+    appleProvider: AppleProvider.debug,
   );
   final authController = AuthController();
   authController.initialize();
-  //await FirebaseAuth.instance.signInAnonymously();
   await initPlatformState();
-  //setupConnectionTracking();
-
   await setUpRemoteConfig();
 
   _log.info('Going full screen');
@@ -171,9 +162,22 @@ class MyApp extends StatelessWidget {
             },
             dispose: (context, audio) => audio.dispose(),
           ),
+          ChangeNotifierProxyProvider2<
+            SettingsController,
+            ValueNotifier<AppLifecycleState>,
+            AuthController
+          >(
+            lazy: false,
+            create: (context) => authController,
+            update: (context, settings, lifecycleNotifier, auth) {
+              if (auth == null) throw ArgumentError.notNull();
+              auth.attachSettings(settings);
+              auth.attachLifecycleNotifier(lifecycleNotifier);
+              return auth;
+            },
+          ),
           ChangeNotifierProvider<AdsController?>.value(value: adsController),
           ChangeNotifierProvider(create: (context) => moneyController),
-          ChangeNotifierProvider(create: (context) => authController),
           ChangeNotifierProxyProvider<AudioController, TriviaService>(
             create: (context) => TriviaService(
               moneyController: moneyController,
@@ -207,39 +211,6 @@ class MyApp extends StatelessWidget {
             update: (_, settingsController, blockedPlayers) {
               blockedPlayers!.updateSettings(settingsController);
               return blockedPlayers;
-            },
-          ),
-          ProxyProvider3<
-            SettingsController,
-            ValueNotifier<AppLifecycleState>,
-            AuthController,
-            NotificationController
-          >(
-            lazy: false,
-
-            // 'create' is called ONLY ONCE to build the instance. This is correct.
-            create: (context) {
-              final nc = NotificationController();
-              // Fire-and-forget the async initialization
-              nc.initialize();
-              return nc;
-            },
-
-            // 'update' is called initially and whenever ANY of the 3 dependencies change.
-            // It REUSES the instance created above.
-            update: (context, settings, lifecycle, auth, notificationController) {
-              if (notificationController == null) {
-                throw ArgumentError.notNull();
-              }
-
-              // Update the controller with the latest dependencies.
-              notificationController.attachSettings(settings);
-              notificationController.attachLifecycleNotifier(lifecycle);
-
-              // This is the key change that enables the direct, widget-less listening.
-              notificationController.linkAuthController(auth);
-
-              return notificationController;
             },
           ),
         ],
