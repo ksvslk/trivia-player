@@ -25,6 +25,8 @@ abstract class SettingsPersistence {
   Future<int> getLockTimeEnd();
   Future<int> saveLockTimeEnd(int newValue);
 
-  Future<int> getLastRoundWithAd();
-  Future<int> setLastRoundWithAd(int roundNumber);
+  Future<int> getRoundsWithoutAds();
+  Future<void> increaseRoundsWithoutAds();
+  Future<void> resetRoundsWithoutAds();
+  
 }

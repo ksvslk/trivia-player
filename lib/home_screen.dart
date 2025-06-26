@@ -6,6 +6,7 @@ import 'package:operation_veritas/ads/blocking_overlay_popup.dart';
 import 'package:operation_veritas/auth_services/auth_controller.dart';
 import 'package:operation_veritas/change_notifier/banner_message_visibility.dart';
 import 'package:operation_veritas/change_notifier/money_controller.dart';
+import 'package:operation_veritas/change_notifier/trivia_service.dart';
 import 'package:operation_veritas/chat_page/trivia_chat.dart';
 import 'package:operation_veritas/l10n/app_localizations.dart';
 import 'package:operation_veritas/menus/menu_drawer.dart';
@@ -20,6 +21,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final settingsController = context.read<SettingsController>();
+    final triviaService = context.watch<TriviaService>();
     final colorScheme = Theme.of(context).colorScheme;
     final brightness = colorScheme.brightness == Brightness.dark
         ? Brightness.light
@@ -35,15 +37,16 @@ class HomeScreen extends StatelessWidget {
 
     final local = AppLocalizations.of(context)!;
 
+    // Check if we need to show loading state
+    final bool isLoading = triviaService.isLoading || !triviaService.connected;
+
     return Scaffold(
       drawer: MenuDrawer(parentNavigatorKey: navigatorKey),
       body: Stack(
         children: [
           Consumer<AuthController>(
             builder: (context, auth, child) {
-              if (auth.authState == AuthState.authenticated) {
-                return TriviaChat();
-              } else if (auth.authState == AuthState.failed) {
+              if (auth.authState == AuthState.failed) {
                 return Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -67,8 +70,33 @@ class HomeScreen extends StatelessWidget {
                     ],
                   ),
                 );
+              } else if (auth.authState == AuthState.signingIntoGameServices) {
+                return Center(
+                  child: Text(
+                    "Signing in..",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontFamily: 'Inter',
+                      color: colorScheme.onSurface,
+                    ),
+                  ),
+                );
+              } else if (auth.authState == AuthState.signingIntoFirebase ||
+                  isLoading) {
+                return Center(
+                  child: Text(
+                    "Loading game..",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontFamily: 'Inter',
+                      color: colorScheme.onSurface,
+                    ),
+                  ),
+                );
               } else {
-                return const Center(child: CircularProgressIndicator());
+                return TriviaChat();
               }
             },
           ),

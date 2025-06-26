@@ -112,11 +112,15 @@ class SettingsController {
     lockTimeEnd.value = await _persistence.saveLockTimeEnd(newValue);
   }
 
-  Future<int> getLastRoundWithAd() async {
-    return await _persistence.getLastRoundWithAd();
+  Future<int> getRoundsWithoutAds() async {
+    return await _persistence.getRoundsWithoutAds();
   }
 
-  Future<int> setLastRoundWithAd({int newValue = -1}) async {
-    return await _persistence.setLastRoundWithAd(newValue);
+  Future<void> increaseRoundsWithoutAds() async {
+    await _persistence.increaseRoundsWithoutAds();
+  }
+
+  Future<void> resetRoundsWithoutAds() async {
+    await _persistence.resetRoundsWithoutAds();
   }
 }

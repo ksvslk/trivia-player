@@ -74,24 +74,9 @@ class _TriviaChatState extends State<TriviaChat> {
           }
         });
 
-        // Check if we need to show loading state
-        final bool isLoading =
-            triviaService.isLoading ||
-            triviaService.messages.isEmpty ||
-            !triviaService.connected;
-
         return SafeArea(
           child: Scaffold(
-            body: isLoading
-                // Show loading indicator when data is not ready
-                ? Center(
-                    child: Text(
-                      AppLocalizations.of(context)!.loading,
-                      style: const TextStyle(fontFamily: 'Inter', fontSize: 12),
-                    ),
-                  )
-                // Show full chat UI when data is ready
-                : Column(
+            body: Column(
                     children: [
                       // Question banner
                       Consumer<BannerMessageVisibility>(

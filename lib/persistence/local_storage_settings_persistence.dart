@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:operation_veritas/constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'settings_persistence.dart';
@@ -116,27 +117,34 @@ class LocalStorageSettingsPersistence extends SettingsPersistence {
   @override
   Future<int> saveLockTimeEnd(int newValue) async {
     final prefs = await SharedPreferences.getInstance();
+    final lockTimeMinutes = FirebaseRemoteConfig.instance.getInt(C.lockTimeLimitMinutesTag);
     final lockTimeEnd = newValue == -1
         ? DateTime.now()
-            .add(Duration(seconds: 300))
+            .add(Duration(minutes: lockTimeMinutes))
             .toUtc()
             .millisecondsSinceEpoch
         : 0;
     await prefs.setInt('lockTimeEnd', lockTimeEnd);
     return lockTimeEnd;
   }
-
+  
   @override
-  Future<int> getLastRoundWithAd() async {
+  Future<int> getRoundsWithoutAds() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getInt('lastRoundAd') ?? -2;
+    return prefs.getInt('roundsWithoutAds') ?? 0;
   }
-
+  
   @override
-  Future<int> setLastRoundWithAd(int roundNumber) async {
-    final prefs = await instanceFuture;
-    await prefs.setInt('lastRoundAd', roundNumber);
-    return roundNumber;
+  Future<void> increaseRoundsWithoutAds() async {
+    final prefs = await SharedPreferences.getInstance();
+    final currentRoundsWithoutAds = prefs.getInt('roundsWithoutAds') ?? 0;
+    await prefs.setInt('roundsWithoutAds', currentRoundsWithoutAds + 1);
+  }
+  
+  @override
+  Future<void> resetRoundsWithoutAds() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('roundsWithoutAds', 0);
   }
 
 }

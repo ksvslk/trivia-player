@@ -11,8 +11,12 @@ import 'package:games_services/games_services.dart';
 import 'package:logging/logging.dart';
 import 'package:operation_veritas/persistence/settings_controller.dart';
 
-enum AuthState { authenticated, progress, failed }
-
+enum AuthState { 
+  authenticated, 
+  signingIntoGameServices, 
+  signingIntoFirebase, 
+  failed 
+}
 class AuthController extends ChangeNotifier {
   static final Logger _log = Logger('AuthController');
 
@@ -24,8 +28,8 @@ class AuthController extends ChangeNotifier {
   final String iosdRoundLeaderboard = 'CgkIxYLalKEVEAIQAQ';
   final String iosQuestionLeaderboard = 'CgkIxYLalKEVEAIQAg';
 
-  // State
-  AuthState _authState = AuthState.progress;
+   // State
+  AuthState _authState = AuthState.signingIntoGameServices;
   User? _currentUser;
   String _playerName = "Player";
   String _errorMessage = "";
@@ -50,87 +54,104 @@ class AuthController extends ChangeNotifier {
   }
 
   Future<void> initialize() async {
-    _authState = AuthState.progress;
+    _authState = AuthState.signingIntoGameServices;
     _errorMessage = "";
     notifyListeners();
 
     try {
-      await _signIn();
+      // Step 1: Sign into Game Services
+      await _signIntoGameServices();
+      
+      // Step 2: Sign into Firebase
+      _authState = AuthState.signingIntoFirebase;
+      notifyListeners();
+      
+      await _signIntoFirebase();
 
-      if (_currentUser != null) {
-        _authState = AuthState.authenticated;
-
-        // Initialize notifications after successful auth
-        _initializeNotifications();
-        _handlePostAuthNotifications();
-      } else {
-        _authState = AuthState.failed;
-        _errorMessage = "Sign in failed";
-      }
+      // Step 3: Success - setup post-auth
+      _authState = AuthState.authenticated;
+      _log.log(Level.INFO, 'Authentication successful for user: ${_currentUser?.uid}');
+      
+      // Initialize notifications after successful auth
+      _initializeNotifications();
+      _handlePostAuthNotifications();
+      
     } catch (e) {
       _authState = AuthState.failed;
       _errorMessage = e.toString();
-      _log.log(Level.SEVERE, 'Auth failed: $e');
+      _log.log(Level.SEVERE, 'Authentication failed: $e');
     }
 
     notifyListeners();
   }
 
-  Future<void> _signIn() async {
-    // Try Game Services + Firebase
+  Future<void> _signIntoGameServices() async {
     try {
+      _log.log(Level.INFO, 'Starting Game Services sign-in...');
+      
       await gs.GamesServices.signIn();
       gameServicesPlayerId = await gs.GamesServices.getPlayerID();
+      
+      if (gameServicesPlayerId == null || gameServicesPlayerId!.isEmpty) {
+        throw Exception('Game Services sign-in failed: No player ID received');
+      }
+      
+      _isGameServicesAvailable = true;
+      _log.log(Level.INFO, 'Game Services sign-in successful. Player ID: $gameServicesPlayerId');
+      
+    } catch (e) {
+      _isGameServicesAvailable = false;
+      _log.log(Level.SEVERE, 'Game Services sign-in failed: $e');
+      throw Exception('Game Services sign-in failed: $e');
+    }
+  }
 
+  Future<void> _signIntoFirebase() async {
+    try {
+      _log.log(Level.INFO, 'Starting Firebase sign-in...');
+      
       final credential = await _getPlatformCredential();
-      if (credential != null) {
-        final userCredential = await FirebaseAuth.instance.signInWithCredential(
-          credential,
-        );
-        _currentUser = userCredential.user;
+      
+      if (credential == null) {
+        throw Exception('Failed to get platform credential - check androidWebClientID configuration');
+      }
+      
+      _log.log(Level.INFO, 'Platform credential obtained, signing into Firebase...');
+      
+      final userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+      _currentUser = userCredential.user;
 
-        // Additional check: ensure Firebase actually gave us a user
-        if (_currentUser == null) {
-          throw Exception(
-            'Firebase returned null user despite successful credential',
-          );
-        }
-
-        _playerName = _currentUser?.displayName ?? "Player";
-        _isGameServicesAvailable = true;
-
-        // Upload player image
-        try {
-             final playerData = await gs.GameAuth.player.first;
-        if (playerData?.iconImage?.isNotEmpty == true) {
-          playerImage = await _uploadImage(playerData!.iconImage!);
-        } else {
-          playerImage = "";
-        }
-        } catch(e) {
-      _log.log(Level.WARNING, 'Error uploading avatar: $e');
-
-        }
-     
-
-        /*
-        if (Platform.isIOS) {
-          gs.GamesServices.player.first.then(
-            (a) => _currentUser?.updatePhotoURL(a?.iconImage),
-          );
-        }
-        */
-        return;
+      if (_currentUser == null) {
+        throw Exception('Firebase returned null user despite successful credential');
       }
 
-      // If credential is null, throw error to trigger failed state
-      throw Exception(
-        'Failed to get platform credential - check androidWebClientID configuration',
-      );
+      _playerName = _currentUser?.displayName ?? "Player";
+      _log.log(Level.INFO, 'Firebase sign-in successful for user: ${_currentUser?.uid}');
+
+      // Upload player image
+      await _uploadPlayerImage();
+      
     } catch (e) {
-      _log.log(Level.WARNING, 'Game Services failed: $e');
-      _isGameServicesAvailable = false;
-      rethrow; // Re-throw to trigger failed state in initialize()
+      _log.log(Level.SEVERE, 'Firebase sign-in failed: $e');
+      throw Exception('Firebase sign-in failed: $e');
+    }
+  }
+
+  Future<void> _uploadPlayerImage() async {
+    try {
+      final playerData = await gs.GameAuth.player.first;
+      if (playerData?.iconImage?.isNotEmpty == true) {
+        _log.log(Level.INFO, 'Uploading player avatar...');
+        playerImage = await _uploadImage(playerData!.iconImage!);
+        _log.log(Level.INFO, 'Player avatar uploaded successfully');
+      } else {
+        playerImage = "";
+        _log.log(Level.INFO, 'No player avatar to upload');
+      }
+    } catch (e) {
+      // Don't fail the whole auth process for avatar upload failure
+      _log.log(Level.WARNING, 'Error uploading avatar (non-fatal): $e');
+      playerImage = "";
     }
   }
 
@@ -148,17 +169,24 @@ class AuthController extends ChangeNotifier {
   Future<AuthCredential?> _getPlatformCredential() async {
     try {
       if (Platform.isAndroid && androidWebClientID.isNotEmpty) {
+        _log.log(Level.INFO, 'Getting Android auth code...');
         final authCode = await GameAuth.getAuthCode(androidWebClientID);
         if (authCode != null) {
+          _log.log(Level.INFO, 'Android auth code obtained');
           return PlayGamesAuthProvider.credential(serverAuthCode: authCode);
+        } else {
+          throw Exception('Failed to get Android auth code');
         }
       } else if (Platform.isIOS || Platform.isMacOS) {
+        _log.log(Level.INFO, 'Getting iOS/macOS Game Center credential...');
         return GameCenterAuthProvider.credential();
+      } else {
+        throw Exception('Unsupported platform or missing androidWebClientID');
       }
     } catch (e) {
-      _log.log(Level.WARNING, 'Platform credential failed: $e');
+      _log.log(Level.SEVERE, 'Platform credential failed: $e');
+      rethrow;
     }
-    return null;
   }
 
   // Notification logic
@@ -255,10 +283,7 @@ class AuthController extends ChangeNotifier {
   void showLeaderboard() async {
     if (!_isGameServicesAvailable) return;
     try {
-      await Leaderboards.showLeaderboards(
-        androidLeaderboardID: androidRoundLeaderboard,
-        iOSLeaderboardID: iosdRoundLeaderboard,
-      );
+      await Leaderboards.showLeaderboards();
     } catch (e) {
       _log.warning('Show leaderboard failed: $e');
     }

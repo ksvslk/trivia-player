@@ -33,11 +33,19 @@ Future<void> setUpRemoteConfig() async {
   await remoteConfig.setConfigSettings(
     RemoteConfigSettings(
       fetchTimeout: const Duration(minutes: 1),
-      minimumFetchInterval: const Duration(minutes: 5),
+      minimumFetchInterval: Duration.zero,
     ),
   );
-  await remoteConfig.setDefaults(const {C.rewardedAdsIntervalTag: 2});
+  await remoteConfig.setDefaults(const {
+    C.rewardedAdsIntervalTag: 3,
+    C.lockTimeLimitMinutesTag: 60,
+  });
+  remoteConfig.onConfigUpdated.listen((event) async {
+    await remoteConfig.activate();
+  });
+  await remoteConfig.fetchAndActivate();
 }
+
 
 Future<void> initPlatformState() async {
   await Purchases.setLogLevel(LogLevel.verbose);
@@ -87,7 +95,6 @@ Future<void> main() async {
     appleProvider: AppleProvider.debug,
   );
   final authController = AuthController();
-  authController.initialize();
   await initPlatformState();
   await setUpRemoteConfig();
 
