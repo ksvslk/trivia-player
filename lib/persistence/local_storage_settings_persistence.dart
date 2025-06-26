@@ -117,10 +117,10 @@ class LocalStorageSettingsPersistence extends SettingsPersistence {
   @override
   Future<int> saveLockTimeEnd(int newValue) async {
     final prefs = await SharedPreferences.getInstance();
-    final lockTimeMinutes = FirebaseRemoteConfig.instance.getInt(C.lockTimeLimitMinutesTag);
+    final lockTimeSeconds = FirebaseRemoteConfig.instance.getInt(C.lockTimeLimitSecondsTag);
     final lockTimeEnd = newValue == -1
         ? DateTime.now()
-            .add(Duration(minutes: lockTimeMinutes))
+            .add(Duration(seconds: lockTimeSeconds))
             .toUtc()
             .millisecondsSinceEpoch
         : 0;

@@ -6,7 +6,7 @@ import 'package:purchases_flutter/purchases_flutter.dart';
 class MoneyController extends ChangeNotifier {
   final Logger _log = Logger('money_controller.dart');
   final String entitlementId = 'premium_entitlement';
-  SubscriptionOption? subscriptionOption;
+  StoreProduct? _product; // Change this line
 
   CustomerInfo? _customerInfo;
 
@@ -21,23 +21,30 @@ class MoneyController extends ChangeNotifier {
       _customerInfo = await Purchases.getCustomerInfo();
       notifyListeners();
     } on PlatformException catch (e) {
-      _log.log(Level.WARNING, "Error getting customer info: $e");
+      _log.log(Level.SEVERE, "Error getting customer info: $e");
     }
   }
 
   void _listenCustomerInfoUpdates() {
     Purchases.addCustomerInfoUpdateListener((info) {
       _customerInfo = info;
-       _log.info(Level.INFO, "_customerInfo: $_customerInfo");
       notifyListeners();
     });
   }
 
   void _querySubscriptionOption() async {
-    final products = await Purchases.getProducts(
-        <String>["com.indest.triviaplayer.premium"]);
-    subscriptionOption = products.first.subscriptionOptions?.first;
-    _log.info(Level.INFO, "subscriptionOption: $subscriptionOption");
+    try {
+      final products = await Purchases.getProducts(<String>[
+        "com.indest.triviaplayer.premium",
+      ]);
+      if (products.isNotEmpty) {
+        final product = products.first;
+        _product = product; 
+        _log.info("Product found: ${product.identifier}");
+      }
+    } catch (e) {
+      _log.severe("Error getting products: $e");
+    }
     notifyListeners();
   }
 
@@ -50,8 +57,8 @@ class MoneyController extends ChangeNotifier {
   }
 
   void purchaseSubscription() {
-    if (subscriptionOption != null) {
-      Purchases.purchaseSubscriptionOption(subscriptionOption!);
+    if (_product != null) {
+      Purchases.purchaseStoreProduct(_product!); // Change this line
     }
   }
 }

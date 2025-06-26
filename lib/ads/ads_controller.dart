@@ -4,9 +4,11 @@
 
 import 'dart:math';
 
+import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:logging/logging.dart';
+import 'package:operation_veritas/constants.dart';
 
 class AdsController extends ChangeNotifier {
   AdsController(MobileAds instance) : _instance = instance;
@@ -20,21 +22,18 @@ class AdsController extends ChangeNotifier {
   int _rewardedRetryCount = 0;
   int _consentRetryCount = 0;
 
-  bool isFakeAdsEnabled = true;
-
-  /*
-  //REAL
-  final rewardedAdUnitId = defaultTargetPlatform == TargetPlatform.android
-      ? ('ca-app-pub-5386053272091445/6000789763')
-      // iOS
-      : 'ca-app-pub-5386053272091445/4687708097';
-  */
-
-  //FAKE
-  final rewardedAdUnitId = defaultTargetPlatform == TargetPlatform.android
-      ? 'ca-app-pub-3940256099942544/5224354917'
-      // iOS
-      : 'ca-app-pub-3940256099942544/1712485313';
+  final rewardedAdUnitId =
+      FirebaseRemoteConfig.instance.getBool(C.debugVersionTag)
+      ? (defaultTargetPlatform == TargetPlatform.android
+            // Android
+            ? 'ca-app-pub-3940256099942544/5224354917'
+            // iOS
+            : 'ca-app-pub-3940256099942544/1712485313')
+      : (defaultTargetPlatform == TargetPlatform.android
+            // Android
+            ? ('ca-app-pub-5386053272091445/6000789763')
+            // iOS
+            : 'ca-app-pub-5386053272091445/4687708097');
 
   @override
   void dispose() {
@@ -55,45 +54,47 @@ class AdsController extends ChangeNotifier {
 
   void loadAd() {
     RewardedAd.load(
-        adUnitId: rewardedAdUnitId,
-        request: const AdRequest(),
-        rewardedAdLoadCallback: RewardedAdLoadCallback(
-          onAdLoaded: (ad) {
-            _rewardedRetryCount = 0; // Reset retry count on success
-            ad.fullScreenContentCallback = FullScreenContentCallback(
-                // Called when the ad showed the full screen content.
-                onAdShowedFullScreenContent: (ad) {},
-                // Called when an impression occurs on the ad.
-                onAdImpression: (ad) {},
-                // Called when the ad failed to show full screen content.
-                onAdFailedToShowFullScreenContent: (ad, err) {
-                  // Dispose the ad here to free resources.
-                  disposeAndReloadAd();
-                },
-                // Called when the ad dismissed full screen content.
-                onAdDismissedFullScreenContent: (ad) {
-                  // Dispose the ad here to free resources.
-                  disposeAndReloadAd();
-                },
-                // Called when a click is recorded for an ad.
-                onAdClicked: (ad) {});
+      adUnitId: rewardedAdUnitId,
+      request: const AdRequest(),
+      rewardedAdLoadCallback: RewardedAdLoadCallback(
+        onAdLoaded: (ad) {
+          _rewardedRetryCount = 0; // Reset retry count on success
+          ad.fullScreenContentCallback = FullScreenContentCallback(
+            // Called when the ad showed the full screen content.
+            onAdShowedFullScreenContent: (ad) {},
+            // Called when an impression occurs on the ad.
+            onAdImpression: (ad) {},
+            // Called when the ad failed to show full screen content.
+            onAdFailedToShowFullScreenContent: (ad, err) {
+              // Dispose the ad here to free resources.
+              disposeAndReloadAd();
+            },
+            // Called when the ad dismissed full screen content.
+            onAdDismissedFullScreenContent: (ad) {
+              // Dispose the ad here to free resources.
+              disposeAndReloadAd();
+            },
+            // Called when a click is recorded for an ad.
+            onAdClicked: (ad) {},
+          );
 
-            // Keep a reference to the ad so you can show it later.
-            rewardedAd = ad;
-            notifyListeners();
-          },
-          // Called when an ad request failed.
-          onAdFailedToLoad: (LoadAdError error) async {
-            if (_rewardedRetryCount < _maxRetryCount) {
-              _rewardedRetryCount++;
-              final delay = _initialDelay * pow(2, _rewardedRetryCount - 1);
-              await Future.delayed(delay);
-              loadAd();
-            } else {
-              _log.info('Max retries reached for rewarded. Not retrying.');
-            }
-          },
-        ));
+          // Keep a reference to the ad so you can show it later.
+          rewardedAd = ad;
+          notifyListeners();
+        },
+        // Called when an ad request failed.
+        onAdFailedToLoad: (LoadAdError error) async {
+          if (_rewardedRetryCount < _maxRetryCount) {
+            _rewardedRetryCount++;
+            final delay = _initialDelay * pow(2, _rewardedRetryCount - 1);
+            await Future.delayed(delay);
+            loadAd();
+          } else {
+            _log.info('Max retries reached for rewarded. Not retrying.');
+          }
+        },
+      ),
+    );
   }
 
   void disposeAndReloadAd() {
@@ -125,12 +126,14 @@ class AdsController extends ChangeNotifier {
           _consentRetryCount++;
           final delay = _initialDelay * pow(2, _consentRetryCount - 1);
           _log.info(
-              'Retrying consent information update in ${delay.inSeconds} seconds...');
+            'Retrying consent information update in ${delay.inSeconds} seconds...',
+          );
           await Future.delayed(delay);
           requestTheLatestConsentInformation();
         } else {
           _log.info(
-              'Max retries reached for consent information update. Not retrying.');
+            'Max retries reached for consent information update. Not retrying.',
+          );
         }
       },
     );
@@ -142,14 +145,14 @@ class AdsController extends ChangeNotifier {
         _consentRetryCount = 0; // Reset retry count on success
         var status = await ConsentInformation.instance.getConsentStatus();
         if (status == ConsentStatus.required) {
-          consentForm.show(
-            (FormError? formError) {
-              // Handle dismissal by reloading form
-              _log.log(Level.SEVERE,
-                  'Consent form dismissed, reloading. $formError');
-              loadForm();
-            },
-          );
+          consentForm.show((FormError? formError) {
+            // Handle dismissal by reloading form
+            _log.log(
+              Level.SEVERE,
+              'Consent form dismissed, reloading. $formError',
+            );
+            loadForm();
+          });
         } else if (status == ConsentStatus.obtained ||
             status == ConsentStatus.notRequired) {
           initialize();
@@ -161,12 +164,14 @@ class AdsController extends ChangeNotifier {
           _consentRetryCount++;
           final delay = _initialDelay * pow(2, _consentRetryCount - 1);
           _log.info(
-              'Retrying loading consent form in ${delay.inSeconds} seconds...');
+            'Retrying loading consent form in ${delay.inSeconds} seconds...',
+          );
           await Future.delayed(delay);
           loadForm();
         } else {
           _log.info(
-              'Max retries reached for loading consent form. Not retrying.');
+            'Max retries reached for loading consent form. Not retrying.',
+          );
         }
       },
     );

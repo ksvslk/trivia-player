@@ -36,7 +36,8 @@ class HomeScreen extends StatelessWidget {
     );
 
     final local = AppLocalizations.of(context)!;
-
+    final enableGameCenterText = "Settings > Game Center\n Make sure the slider is 'on'";
+    final enablePlayGamesText = "Settings > Google > All services > Play Games\n Make sure you are logged in";
     // Check if we need to show loading state
     final bool isLoading = triviaService.isLoading || !triviaService.connected;
 
@@ -52,7 +53,7 @@ class HomeScreen extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        "${local.failedToAuth} (${Platform.isAndroid ? "Play Games account required" : "GameCenter account required"})",
+                        Platform.isAndroid ? enablePlayGamesText : enableGameCenterText,
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 14,
@@ -65,7 +66,7 @@ class HomeScreen extends StatelessWidget {
                         onPressed: () {
                           auth.retry();
                         },
-                        child: Text(local.tryAgain),
+                        child: Text("Sign in"),
                       ),
                     ],
                   ),

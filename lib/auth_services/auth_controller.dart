@@ -11,12 +11,13 @@ import 'package:games_services/games_services.dart';
 import 'package:logging/logging.dart';
 import 'package:operation_veritas/persistence/settings_controller.dart';
 
-enum AuthState { 
-  authenticated, 
-  signingIntoGameServices, 
-  signingIntoFirebase, 
-  failed 
+enum AuthState {
+  authenticated,
+  signingIntoGameServices,
+  signingIntoFirebase,
+  failed,
 }
+
 class AuthController extends ChangeNotifier {
   static final Logger _log = Logger('AuthController');
 
@@ -28,7 +29,7 @@ class AuthController extends ChangeNotifier {
   final String iosdRoundLeaderboard = 'CgkIxYLalKEVEAIQAQ';
   final String iosQuestionLeaderboard = 'CgkIxYLalKEVEAIQAg';
 
-   // State
+  // State
   AuthState _authState = AuthState.signingIntoGameServices;
   User? _currentUser;
   String _playerName = "Player";
@@ -61,21 +62,19 @@ class AuthController extends ChangeNotifier {
     try {
       // Step 1: Sign into Game Services
       await _signIntoGameServices();
-      
+
       // Step 2: Sign into Firebase
       _authState = AuthState.signingIntoFirebase;
       notifyListeners();
-      
+
       await _signIntoFirebase();
 
       // Step 3: Success - setup post-auth
       _authState = AuthState.authenticated;
-      _log.log(Level.INFO, 'Authentication successful for user: ${_currentUser?.uid}');
-      
+
       // Initialize notifications after successful auth
       _initializeNotifications();
       _handlePostAuthNotifications();
-      
     } catch (e) {
       _authState = AuthState.failed;
       _errorMessage = e.toString();
@@ -87,18 +86,12 @@ class AuthController extends ChangeNotifier {
 
   Future<void> _signIntoGameServices() async {
     try {
-      _log.log(Level.INFO, 'Starting Game Services sign-in...');
-      
       await gs.GamesServices.signIn();
       gameServicesPlayerId = await gs.GamesServices.getPlayerID();
-      
       if (gameServicesPlayerId == null || gameServicesPlayerId!.isEmpty) {
         throw Exception('Game Services sign-in failed: No player ID received');
       }
-      
       _isGameServicesAvailable = true;
-      _log.log(Level.INFO, 'Game Services sign-in successful. Player ID: $gameServicesPlayerId');
-      
     } catch (e) {
       _isGameServicesAvailable = false;
       _log.log(Level.SEVERE, 'Game Services sign-in failed: $e');
@@ -108,29 +101,25 @@ class AuthController extends ChangeNotifier {
 
   Future<void> _signIntoFirebase() async {
     try {
-      _log.log(Level.INFO, 'Starting Firebase sign-in...');
-      
       final credential = await _getPlatformCredential();
-      
       if (credential == null) {
-        throw Exception('Failed to get platform credential - check androidWebClientID configuration');
+        throw Exception(
+          'Failed to get platform credential - check androidWebClientID configuration',
+        );
       }
-      
-      _log.log(Level.INFO, 'Platform credential obtained, signing into Firebase...');
-      
-      final userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+      final userCredential = await FirebaseAuth.instance.signInWithCredential(
+        credential,
+      );
       _currentUser = userCredential.user;
 
       if (_currentUser == null) {
-        throw Exception('Firebase returned null user despite successful credential');
+        throw Exception(
+          'Firebase returned null user despite successful credential',
+        );
       }
-
       _playerName = _currentUser?.displayName ?? "Player";
-      _log.log(Level.INFO, 'Firebase sign-in successful for user: ${_currentUser?.uid}');
-
       // Upload player image
       await _uploadPlayerImage();
-      
     } catch (e) {
       _log.log(Level.SEVERE, 'Firebase sign-in failed: $e');
       throw Exception('Firebase sign-in failed: $e');
@@ -141,15 +130,40 @@ class AuthController extends ChangeNotifier {
     try {
       final playerData = await gs.GameAuth.player.first;
       if (playerData?.iconImage?.isNotEmpty == true) {
-        _log.log(Level.INFO, 'Uploading player avatar...');
-        playerImage = await _uploadImage(playerData!.iconImage!);
-        _log.log(Level.INFO, 'Player avatar uploaded successfully');
+        // Check if we need to upload (only if file is older than a week)
+        final ref = FirebaseStorage.instance.ref(
+          'avatars/${_currentUser!.uid}.png',
+        );
+        bool shouldUpload = true;
+
+        try {
+          final metadata = await ref.getMetadata();
+          final lastModified = metadata.updated ?? metadata.timeCreated;
+          if (lastModified != null) {
+            final weekAgo = DateTime.now().subtract(const Duration(days: 7));
+            shouldUpload = lastModified.isBefore(weekAgo);
+          }
+        } catch (e) {
+          // File doesn't exist, so we should upload
+          shouldUpload = true;
+        }
+
+        if (shouldUpload) {
+          _log.log(Level.INFO, 'Uploading player avatar...');
+          playerImage = await _uploadImage(playerData!.iconImage!);
+          _log.log(Level.INFO, 'Player avatar uploaded successfully');
+        } else {
+          _log.log(
+            Level.INFO,
+            'Using existing avatar (updated within last week)',
+          );
+          playerImage = await ref.getDownloadURL();
+        }
       } else {
         playerImage = "";
         _log.log(Level.INFO, 'No player avatar to upload');
       }
     } catch (e) {
-      // Don't fail the whole auth process for avatar upload failure
       _log.log(Level.WARNING, 'Error uploading avatar (non-fatal): $e');
       playerImage = "";
     }
@@ -160,8 +174,6 @@ class AuthController extends ChangeNotifier {
     final ref = FirebaseStorage.instance.ref(
       'avatars/${_currentUser!.uid}.png',
     );
-
-    // This will overwrite the existing file if it exists
     await ref.putData(bytes);
     return await ref.getDownloadURL();
   }
