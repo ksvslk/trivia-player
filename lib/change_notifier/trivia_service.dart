@@ -217,7 +217,7 @@ class TriviaService extends ChangeNotifier {
         'text': text,
         'isBot': false,
         'timestamp': ServerValue.timestamp,
-        'photoUrl': (Platform.isAndroid ? authController?.currentUser?.photoURL : authController?.playerImage) ?? '',
+        'photoUrl': (Platform.isAndroid ? "${authController?.currentUser?.photoURL}=s128" : authController?.playerImage) ?? '',
       });
     } catch (e) {
       rethrow; // Rethrow to allow UI to handle the error

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:app_tracking_transparency/app_tracking_transparency.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/foundation.dart';
@@ -39,14 +40,13 @@ Future<void> setUpRemoteConfig() async {
   await remoteConfig.setDefaults(const {
     C.rewardedAdsIntervalTag: 3,
     C.lockTimeLimitSecondsTag: 3600,
-    C.debugVersionTag: false
+    C.debugVersionTag: false,
   });
   remoteConfig.onConfigUpdated.listen((event) async {
     await remoteConfig.activate();
   });
   await remoteConfig.fetchAndActivate();
 }
-
 
 Future<void> initPlatformState() async {
   await Purchases.setLogLevel(LogLevel.verbose);
@@ -76,7 +76,11 @@ Future<void> main() async {
     }
   });
 
-  WidgetsFlutterBinding.ensureInitialized();
+  WidgetsFlutterBinding.ensureInitialized().addPostFrameCallback((_) async {
+    if (Platform.isIOS || Platform.isMacOS) {
+      AppTrackingTransparency.requestTrackingAuthorization();
+    }
+  });
 
   await Firebase.initializeApp();
   await FirebaseAppCheck.instance.activate(
@@ -93,7 +97,7 @@ Future<void> main() async {
     // 2. Device Check provider
     // 3. App Attest provider
     // 4. App Attest provider with fallback to Device Check provider (App Attest provider is only available on iOS 14.0+, macOS 14.0+)
-    appleProvider: AppleProvider.debug,
+    appleProvider: AppleProvider.appAttest,
   );
   final authController = AuthController();
   await initPlatformState();

@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:games_services/games_services.dart' as gs;
 import 'package:games_services/games_services.dart';
 import 'package:logging/logging.dart';
@@ -170,11 +172,30 @@ class AuthController extends ChangeNotifier {
   }
 
   Future<String> _uploadImage(String base64Image) async {
-    final bytes = base64Decode(base64Image);
+    Uint8List originalBytes = base64Decode(base64Image);
+
+    const int minWidth = 128;
+    const int minHeight = 128;
+    const int quality = 85;
+
+    Uint8List? compressedBytes = await FlutterImageCompress.compressWithList(
+      originalBytes,
+      minWidth: minWidth,
+      minHeight: minHeight,
+      quality: quality,
+      format: CompressFormat.png,
+    );
+
     final ref = FirebaseStorage.instance.ref(
       'avatars/${_currentUser!.uid}.png',
     );
-    await ref.putData(bytes);
+
+    final metadata = SettableMetadata(
+      contentType:
+          'image/png', 
+    );
+
+    await ref.putData(compressedBytes, metadata);
     return await ref.getDownloadURL();
   }
 

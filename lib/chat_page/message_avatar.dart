@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:operation_veritas/change_notifier/blocked_players.dart';
 import 'package:operation_veritas/chat_page/message.dart';
@@ -95,8 +96,10 @@ class _MessageAvatarState extends State<MessageAvatar> {
                       )
                     : (widget.message.photoUrl.isNotEmpty
                         ? ClipOval(
-                            child: Image.network(
-                              widget.message.photoUrl,
+                            child: CachedNetworkImage(
+                              imageUrl: widget.message.photoUrl,
+                              placeholder: (context, url) => CircularProgressIndicator(),
+                              errorWidget: (context, url, error) => Icon(Icons.error),
                               width: 30,
                               height: 30,
                               fit: BoxFit.cover,
