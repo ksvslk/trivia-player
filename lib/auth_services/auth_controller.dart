@@ -151,19 +151,12 @@ class AuthController extends ChangeNotifier {
         }
 
         if (shouldUpload) {
-          _log.log(Level.INFO, 'Uploading player avatar...');
           playerImage = await _uploadImage(playerData!.iconImage!);
-          _log.log(Level.INFO, 'Player avatar uploaded successfully');
         } else {
-          _log.log(
-            Level.INFO,
-            'Using existing avatar (updated within last week)',
-          );
           playerImage = await ref.getDownloadURL();
         }
       } else {
         playerImage = "";
-        _log.log(Level.INFO, 'No player avatar to upload');
       }
     } catch (e) {
       _log.log(Level.WARNING, 'Error uploading avatar (non-fatal): $e');
@@ -202,16 +195,13 @@ class AuthController extends ChangeNotifier {
   Future<AuthCredential?> _getPlatformCredential() async {
     try {
       if (Platform.isAndroid && androidWebClientID.isNotEmpty) {
-        _log.log(Level.INFO, 'Getting Android auth code...');
         final authCode = await GameAuth.getAuthCode(androidWebClientID);
         if (authCode != null) {
-          _log.log(Level.INFO, 'Android auth code obtained');
           return PlayGamesAuthProvider.credential(serverAuthCode: authCode);
         } else {
           throw Exception('Failed to get Android auth code');
         }
       } else if (Platform.isIOS || Platform.isMacOS) {
-        _log.log(Level.INFO, 'Getting iOS/macOS Game Center credential...');
         return GameCenterAuthProvider.credential();
       } else {
         throw Exception('Unsupported platform or missing androidWebClientID');

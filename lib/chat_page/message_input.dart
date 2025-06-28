@@ -44,7 +44,7 @@ class MessageInputState extends State<MessageInput> {
       child: Row(
         children: [
           Expanded(
-            child: TextFormField(
+            child: TextField(
               focusNode:
                   _focusNode, // Use the focus node to listen for focus changes
               autofocus: false,
@@ -64,7 +64,7 @@ class MessageInputState extends State<MessageInput> {
                   color: colorScheme.onSurfaceVariant,
                 ),
               ),
-              onFieldSubmitted: (_) => widget.onSend,
+              onSubmitted: (_) => widget.onSend,
             ),
           ),
           const SizedBox(width: 8),
