@@ -13,6 +13,7 @@ import 'package:operation_veritas/change_notifier/stats_service.dart';
 import 'package:operation_veritas/chat_page/message.dart';
 import 'package:operation_veritas/constants.dart';
 import 'package:operation_veritas/persistence/settings_controller.dart';
+import 'package:operation_veritas/text_filter.dart';
 
 class TriviaService extends ChangeNotifier {
   final MoneyController? moneyController;
@@ -37,7 +38,8 @@ class TriviaService extends ChangeNotifier {
   String? get currentUserId => authController?.currentUser?.uid;
   Message? get getActiveQuestion => _activeQuestion;
   Message? get getLastMessage => _lastMessage;
-
+  final filter = TextFilter();
+  
   TriviaService({
     this.audioController,
     this.moneyController,
@@ -141,11 +143,13 @@ class TriviaService extends ChangeNotifier {
 
     try {
       final message = Map<String, dynamic>.from(event.snapshot.value as Map);
+      final text = message['text'] != null ? filter.filter(message['text']) : "???";
+
       final newMessage = Message(
         id: event.snapshot.key ?? '',
         playerUid: message['id'] ?? '',
-        name: message['name'] ?? 'Unknown',
-        text: message['text'] ?? '',
+        name: message['name'] ?? '???',
+        text: text,
         badgeText: message['badgeText'] ?? '',
         isBot: message['isBot'] ?? false,
         timestamp: message['timestamp'] ?? 0,
