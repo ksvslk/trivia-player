@@ -9,8 +9,13 @@ class MoneyController extends ChangeNotifier {
   final String entitlementId = 'premium_entitlement';
   StoreProduct? _product; // Change this line
 
+  String _cleanTitle(String title) {
+    int index = title.indexOf('(');
+    return index != -1 ? title.substring(0, index).trim() : title;
+  }
+
   String? getProductFriendlyInfo() {
-    return "${_product?.title} - ${_product?.priceString}/${_product?.subscriptionPeriod?.toFriendlyEnglish()}";
+    return "${_cleanTitle(_product?.title ?? '...')} - ${_product?.priceString}/${_product?.subscriptionPeriod?.toFriendlyEnglish()}";
   }
 
   CustomerInfo? _customerInfo;
