@@ -4,87 +4,13 @@ import 'package:operation_veritas/change_notifier/money_controller.dart';
 import 'package:operation_veritas/change_notifier/blocked_players.dart';
 import 'package:operation_veritas/change_notifier/stats_service.dart';
 import 'package:operation_veritas/l10n/app_localizations.dart';
+import 'package:operation_veritas/menus/info_display.dart';
 import 'package:operation_veritas/persistence/settings_controller.dart';
 import 'package:provider/provider.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 // Re-using your existing enums
 enum ThemeSubMenuItem { red, yellow, green, blue, purple }
-
-class InfoDisplay extends StatefulWidget {
-  const InfoDisplay({super.key});
-
-  @override
-  State<InfoDisplay> createState() => _InfoDisplayState();
-}
-
-class _InfoDisplayState extends State<InfoDisplay> {
-  String _version = 'Loading...';
-
-  @override
-  void initState() {
-    super.initState();
-    _getVersionInfo();
-  }
-
-  Future<void> _getVersionInfo() async {
-    final packageInfo = await PackageInfo.fromPlatform();
-
-    if (mounted) {
-      setState(() {
-        _version =
-            '${AppLocalizations.of(context)!.version}: ${packageInfo.version} (${packageInfo.buildNumber})';
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final local = AppLocalizations.of(context)!;
-
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Consumer<AuthController>(
-            builder: (context, auth, child) {
-              return Text(
-                "${local.player}: ${auth.playerName}",
-                style: TextStyle(
-                  fontSize: 12,
-                  fontFamily: 'Inter',
-                  color: Colors.grey[600],
-                ),
-              );
-            },
-          ),
-          Consumer<StatsService>(
-            builder: (context, stats, child) {
-              return Text(
-                "Round wins: ${stats.getRoundScore()}\nQuestion wins: ${stats.getQuestionScore()}",
-                style: TextStyle(
-                  fontSize: 12,
-                  fontFamily: 'Inter',
-                  color: Colors.grey[600],
-                ),
-              );
-            },
-          ),
-          Text(""),
-          Text(
-            _version,
-            style: TextStyle(
-              fontSize: 12,
-              fontFamily: 'Inter',
-              color: Colors.grey[700],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 class MenuDrawer extends StatelessWidget {
   final GlobalKey<NavigatorState> parentNavigatorKey;
@@ -239,7 +165,10 @@ class MenuDrawer extends StatelessWidget {
                   ),
                   title: money.isSubscribed()
                       ? Text(local.youOwnPremium)
-                      : Text(local.premiumInfo),
+                      : Text(money.getProductFriendlyInfo() ?? "..."),
+                     subtitle: money.isSubscribed() 
+                  ? null 
+                  : Text("Remove ads/popups"),
                   onTap: money.isSubscribed()
                       ? null
                       : () {

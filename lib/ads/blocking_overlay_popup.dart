@@ -102,7 +102,7 @@ class BlockingOverlayPopup extends StatelessWidget {
                                 ElevatedButton.icon(
                                   icon: const Icon(Icons.diamond),
                                   label: Text(
-                                    local.subscribeToPremium,
+                                    "Go ${moneyController.getProductFriendlyInfo()}",
                                     style: TextStyle(
                                       fontSize: 14,
                                       fontFamily: 'Inter',

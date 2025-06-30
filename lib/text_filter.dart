@@ -461,7 +461,6 @@ class TextFilter {
     "mutherfucker",
     "n1gga",
     "n1gger",
-    "nazi",
     "negro",
     "neonazi",
     "nig nog",

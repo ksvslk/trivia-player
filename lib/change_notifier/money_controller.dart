@@ -1,12 +1,17 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:logging/logging.dart';
+import 'package:operation_veritas/extensions.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 
 class MoneyController extends ChangeNotifier {
   final Logger _log = Logger('money_controller.dart');
   final String entitlementId = 'premium_entitlement';
   StoreProduct? _product; // Change this line
+
+  String? getProductFriendlyInfo() {
+    return "${_product?.title} - ${_product?.priceString}/${_product?.subscriptionPeriod?.toFriendlyEnglish()}";
+  }
 
   CustomerInfo? _customerInfo;
 

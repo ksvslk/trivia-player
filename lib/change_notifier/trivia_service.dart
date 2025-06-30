@@ -144,14 +144,15 @@ class TriviaService extends ChangeNotifier {
     try {
       final message = Map<String, dynamic>.from(event.snapshot.value as Map);
       final text = message['text'] != null ? filter.filter(message['text']) : "???";
+      final isBot = message['isBot'] ?? false;
 
       final newMessage = Message(
         id: event.snapshot.key ?? '',
         playerUid: message['id'] ?? '',
         name: message['name'] ?? '???',
-        text: text,
+        text: isBot ? message["text"] : text,
         badgeText: message['badgeText'] ?? '',
-        isBot: message['isBot'] ?? false,
+        isBot: isBot,
         timestamp: message['timestamp'] ?? 0,
         roundNumber: message['roundNumber'] ?? -1,
         messageType: message['messageType'] ?? '',
