@@ -22,6 +22,7 @@ class SettingsController {
   ValueNotifier<bool> soundsOn = ValueNotifier(false);
   ValueNotifier<int> seedColor = ValueNotifier(C.defaultThemeColor.toARGB32());
   ValueNotifier<bool> isBlockedExpanded = ValueNotifier(false);
+  bool isEulaAccepted = false;
   ValueNotifier<bool> isColorsExpanded = ValueNotifier(false);
   ValueNotifier<int> lockTimeEnd = ValueNotifier(0);
   ValueNotifier<String> formattedTimeLeft = ValueNotifier("00:00");
@@ -45,6 +46,9 @@ class SettingsController {
       _persistence
           .getColorsExpanded()
           .then((value) => isColorsExpanded.value = value),
+      _persistence
+          .getEulaAccepted()
+          .then((value) => isEulaAccepted = value),
       _persistence.getLockTimeEnd().then((value) => lockTimeEnd.value = value)
     ]);
     _log.info("loadStateFromPersistence");
@@ -68,6 +72,11 @@ class SettingsController {
 
   Future<void> saveBlockedExpanded(bool expanded) async {
     _persistence.saveBlockedExpanded(expanded);
+  }
+
+  Future<void> setEulaAccepted() async {
+    isEulaAccepted = true;
+    _persistence.setEulaAccepted();
   }
 
   Future<void> saveColorsExpanded(bool expanded) async {

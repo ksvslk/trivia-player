@@ -7,4 +7,6 @@ class C {
   static const String rewardedAdsIntervalTag = "REWARDED_ADS_INTERVAL";
   static const String lockTimeLimitSecondsTag = "LOCK_TIME_SECONDS";
   static const String debugVersionTag = "DEBUG_VERSION";
+  static const String eulaAppleLink = "https://www.indest.ee/eula/";
+  static const String privacyLink = "https://www.indest.ee/privacy-policy/";
 }

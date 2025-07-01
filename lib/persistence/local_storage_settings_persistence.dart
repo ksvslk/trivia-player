@@ -146,5 +146,17 @@ class LocalStorageSettingsPersistence extends SettingsPersistence {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt('roundsWithoutAds', 0);
   }
+  
+  @override
+  Future<bool> getEulaAccepted() async {
+    final prefs = await instanceFuture;
+    return prefs.getBool('eulaAccepted') ?? false;
+  }
+  
+  @override
+  Future<void> setEulaAccepted() async {
+    final prefs = await instanceFuture;
+    await prefs.setBool('eulaAccepted', true);
+  }
 
 }

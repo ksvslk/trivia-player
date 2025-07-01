@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:operation_veritas/auth_services/auth_controller.dart';
 import 'package:operation_veritas/change_notifier/stats_service.dart';
+import 'package:operation_veritas/constants.dart';
 import 'package:operation_veritas/l10n/app_localizations.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
@@ -94,7 +95,7 @@ class _InfoDisplayState extends State<InfoDisplay> {
               if ((Platform.isIOS || Platform.isMacOS)) ...[
                 InkWell(
                   onTap: () => _launchUrl(
-                    'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/',
+                    C.eulaAppleLink,
                   ),
                   child: Text(
                     'Terms of Use',
@@ -117,7 +118,7 @@ class _InfoDisplayState extends State<InfoDisplay> {
               ],
               InkWell(
                 onTap: () =>
-                    _launchUrl('https://www.indest.ee/privacy-policy/'),
+                    _launchUrl(C.privacyLink),
                 child: Text(
                   'Privacy Policy',
                   style: TextStyle(
