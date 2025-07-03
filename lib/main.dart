@@ -221,7 +221,7 @@ class MyApp extends StatelessWidget {
           ChangeNotifierProxyProvider<SettingsController, BlockedPlayers>(
             create: (_) => BlockedPlayers(),
             update: (_, settingsController, blockedPlayers) {
-              blockedPlayers!.updateSettings(settingsController);
+              blockedPlayers!.loadBlockedPlayers();
               return blockedPlayers;
             },
           ),

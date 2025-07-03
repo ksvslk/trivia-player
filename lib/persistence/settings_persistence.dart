@@ -21,8 +21,6 @@ abstract class SettingsPersistence {
   Future<void> saveSoundsOn(bool value);
   Future<void> saveSeedColor(int value);
   Future<void> setToken(String value);
-  Future<Map<String, String>> setBan(String id, String name);
-  Future<Map<String, String>> removeBan(String id);
 
   Future<int> getLockTimeEnd();
   Future<int> saveLockTimeEnd(int newValue);

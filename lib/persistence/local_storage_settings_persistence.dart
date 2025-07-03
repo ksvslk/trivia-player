@@ -61,30 +61,6 @@ class LocalStorageSettingsPersistence extends SettingsPersistence {
   }
 
   @override
-  Future<Map<String, String>> setBan(String id, String name) async {
-    final prefs = await instanceFuture;
-    final bannedMapString = prefs.getString('bannedUsers');
-    final bannedMapObject =
-        Map<String, String>.from(jsonDecode(bannedMapString ?? "{}"));
-    bannedMapObject[id] = name;
-    String bannedMapStringUpdated = jsonEncode(bannedMapObject);
-    await prefs.setString('bannedUsers', bannedMapStringUpdated);
-    return bannedMapObject;
-  }
-
-  @override
-  Future<Map<String, String>> removeBan(String id) async {
-    final prefs = await instanceFuture;
-    final bannedMapString = prefs.getString('bannedUsers');
-    final bannedMapObject =
-        Map<String, String>.from(jsonDecode(bannedMapString ?? "{}"));
-    bannedMapObject.remove(id);
-    String bannedMapStringUpdated = jsonEncode(bannedMapObject);
-    await prefs.setString('bannedUsers', bannedMapStringUpdated);
-    return bannedMapObject;
-  }
-
-  @override
   Future<bool> getBlockedExpanded() async {
     final prefs = await instanceFuture;
     return prefs.getBool('blockedExpanded') ?? false;
