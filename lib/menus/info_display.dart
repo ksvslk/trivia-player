@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:operation_veritas/auth_services/auth_controller.dart';
+import 'package:operation_veritas/change_notifier/money_controller.dart';
 import 'package:operation_veritas/change_notifier/stats_service.dart';
 import 'package:operation_veritas/constants.dart';
 import 'package:operation_veritas/l10n/app_localizations.dart';
@@ -49,6 +50,7 @@ class _InfoDisplayState extends State<InfoDisplay> {
   @override
   Widget build(BuildContext context) {
     final local = AppLocalizations.of(context)!;
+    final moneyController = context.read<MoneyController>();
 
     return Padding(
       padding: const EdgeInsets.all(16.0),
@@ -94,9 +96,7 @@ class _InfoDisplayState extends State<InfoDisplay> {
             children: [
               if ((Platform.isIOS || Platform.isMacOS)) ...[
                 InkWell(
-                  onTap: () => _launchUrl(
-                    C.eulaAppleLink,
-                  ),
+                  onTap: () => _launchUrl(C.eulaAppleLink),
                   child: Text(
                     'Terms of Use',
                     style: TextStyle(
@@ -117,8 +117,7 @@ class _InfoDisplayState extends State<InfoDisplay> {
                 ),
               ],
               InkWell(
-                onTap: () =>
-                    _launchUrl(C.privacyLink),
+                onTap: () => _launchUrl(C.privacyLink),
                 child: Text(
                   'Privacy Policy',
                   style: TextStyle(
@@ -131,6 +130,16 @@ class _InfoDisplayState extends State<InfoDisplay> {
               ),
             ],
           ),
+          if ((Platform.isIOS || Platform.isMacOS)) ...[
+            const SizedBox(height: 16),
+            InkWell(
+              onTap: () => moneyController.restorePurchases(),
+              child: Text(
+                'Restore Purchases',
+                style: TextStyle(fontSize: 12, fontFamily: 'Inter'),
+              ),
+            ),
+          ],
         ],
       ),
     );

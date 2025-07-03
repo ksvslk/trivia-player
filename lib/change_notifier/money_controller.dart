@@ -49,7 +49,7 @@ class MoneyController extends ChangeNotifier {
       ]);
       if (products.isNotEmpty) {
         final product = products.first;
-        _product = product; 
+        _product = product;
         _log.info("Product found: ${product.identifier}");
       }
     } catch (e) {
@@ -69,6 +69,14 @@ class MoneyController extends ChangeNotifier {
   void purchaseSubscription() {
     if (_product != null) {
       Purchases.purchaseStoreProduct(_product!); // Change this line
+    }
+  }
+
+  void restorePurchases() async {
+    try {
+      await Purchases.restorePurchases();
+    } on PlatformException catch (e) {
+      _log.severe("Error restoring purchases: $e");
     }
   }
 }
