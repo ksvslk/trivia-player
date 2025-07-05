@@ -133,7 +133,7 @@ class _InfoDisplayState extends State<InfoDisplay> {
           if ((Platform.isIOS || Platform.isMacOS)) ...[
             const SizedBox(height: 16),
             InkWell(
-              onTap: () => moneyController.restorePurchases(),
+              onTap: () => moneyController.restorePurchases(context),
               child: Text(
                 'Restore Purchases',
                 style: TextStyle(fontSize: 12, fontFamily: 'Inter'),

@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:logging/logging.dart';
 import 'package:operation_veritas/extensions.dart';
@@ -72,11 +73,77 @@ class MoneyController extends ChangeNotifier {
     }
   }
 
-  void restorePurchases() async {
+  void restorePurchases(BuildContext context) async {
     try {
-      await Purchases.restorePurchases();
+      CustomerInfo customerInfo = await Purchases.restorePurchases();
+
+      // Check if any active entitlements were restored
+      if (customerInfo.entitlements.active.isNotEmpty) {
+        // Show success popup - purchases were actually restored
+        if (context.mounted) {
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: const Text('Success'),
+                content: const Text(
+                  'Your purchases have been restored successfully.',
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text('OK'),
+                  ),
+                ],
+              );
+            },
+          );
+        }
+      } else {
+        // No purchases found to restore
+        if (context.mounted) {
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: const Text('No Purchases Found'),
+                content: const Text(
+                  'No previous purchases were found to restore.',
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text('OK'),
+                  ),
+                ],
+              );
+            },
+          );
+        }
+      }
     } on PlatformException catch (e) {
       _log.severe("Error restoring purchases: $e");
+
+      // Show error popup
+      if (context.mounted) {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Error'),
+              content: const Text(
+                'Failed to restore purchases. Please try again later.',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('OK'),
+                ),
+              ],
+            );
+          },
+        );
+      }
     }
   }
 }
