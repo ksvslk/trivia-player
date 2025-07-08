@@ -2,8 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
 import 'dart:math';
+import 'dart:ui';
 
+import 'package:app_tracking_transparency/app_tracking_transparency.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
@@ -17,6 +20,8 @@ class AdsController extends ChangeNotifier {
   final MobileAds _instance;
   final Duration _initialDelay = const Duration(seconds: 1);
   RewardedAd? rewardedAd;
+  ValueNotifier<AppLifecycleState>? _lifecycleNotifier;
+  TrackingStatus? _lastTrackingStatus;
 
   final int _maxRetryCount = 25;
   int _rewardedRetryCount = 0;
@@ -38,6 +43,7 @@ class AdsController extends ChangeNotifier {
   @override
   void dispose() {
     super.dispose();
+    _lifecycleNotifier?.removeListener(_handleAppLifecycle);
     rewardedAd?.dispose();
   }
 
@@ -176,4 +182,36 @@ class AdsController extends ChangeNotifier {
       },
     );
   }
+
+  Future<void> _checkTrackingAuthorizationChanges() async {
+    try {
+      final currentStatus =
+          await AppTrackingTransparency.trackingAuthorizationStatus;
+      if (_lastTrackingStatus != TrackingStatus.authorized &&
+          currentStatus == TrackingStatus.authorized &&
+          this != null) {
+        requestTheLatestConsentInformation();
+      }
+      _lastTrackingStatus = currentStatus;
+    } catch (e) {
+      _log.log(Level.WARNING, "Could not check tracking authorization changes");
+    }
+  }
+
+  void attachLifecycleNotifier(
+    ValueNotifier<AppLifecycleState> lifecycleNotifier,
+  ) {
+    _lifecycleNotifier?.removeListener(_handleAppLifecycle);
+    lifecycleNotifier.addListener(_handleAppLifecycle);
+    _lifecycleNotifier = lifecycleNotifier;
+  }
+
+  void _handleAppLifecycle() {
+    if (_lifecycleNotifier?.value == AppLifecycleState.resumed) {
+      if (Platform.isIOS || Platform.isMacOS) {
+        _checkTrackingAuthorizationChanges();
+      }
+    }
+  }
+  
 }

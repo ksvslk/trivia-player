@@ -60,6 +60,8 @@ Future<void> initPlatformState() async {
 }
 
 Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
   //debugPaintSizeEnabled = true;
   // Subscribe to log messages.
   Logger.root.onRecord.listen((record) {
@@ -73,12 +75,6 @@ Future<void> main() async {
         error: record.error,
         stackTrace: record.stackTrace,
       );
-    }
-  });
-
-  WidgetsFlutterBinding.ensureInitialized().addPostFrameCallback((_) async {
-    if (Platform.isIOS || Platform.isMacOS) {
-      AppTrackingTransparency.requestTrackingAuthorization();
     }
   });
 
@@ -99,21 +95,29 @@ Future<void> main() async {
     // 4. App Attest provider with fallback to Device Check provider (App Attest provider is only available on iOS 14.0+, macOS 14.0+)
     appleProvider: AppleProvider.appAttest,
   );
+
   final authController = AuthController();
   await initPlatformState();
   await setUpRemoteConfig();
 
-  _log.info('Going full screen');
-  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-
   AdsController? adsController;
   if (!kIsWeb && (Platform.isIOS || Platform.isAndroid)) {
-    /// Prepare the google_mobile_ads plugin so that the first ad loads
-    /// faster. This can be done later or with a delay if startup
-    /// experience suffers.
     adsController = AdsController(MobileAds.instance);
-    adsController.requestTheLatestConsentInformation();
   }
+
+  if (Platform.isIOS || Platform.isMacOS) {
+    final status = await AppTrackingTransparency.requestTrackingAuthorization();
+    if (status == TrackingStatus.authorized && adsController != null) {
+      adsController.requestTheLatestConsentInformation();
+    }
+  } else {
+    if (adsController != null) {
+      adsController.requestTheLatestConsentInformation();
+    }
+  }
+
+  _log.info('Going full screen');
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 
   final settingsController = SettingsController(
     persistence: LocalStorageSettingsPersistence(),
@@ -188,7 +192,19 @@ class MyApp extends StatelessWidget {
               return auth;
             },
           ),
-          ChangeNotifierProvider<AdsController?>.value(value: adsController),
+          ChangeNotifierProxyProvider<
+            ValueNotifier<AppLifecycleState>,
+            AdsController?
+          >(
+            lazy: false,
+            create: (context) => adsController,
+            update: (context, lifecycleNotifier, ads) {
+              if (ads != null) {
+                ads.attachLifecycleNotifier(lifecycleNotifier);
+              }
+              return ads;
+            },
+          ),
           ChangeNotifierProvider(create: (context) => moneyController),
           ChangeNotifierProxyProvider<AudioController, TriviaService>(
             create: (context) => TriviaService(

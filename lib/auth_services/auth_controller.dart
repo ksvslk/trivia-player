@@ -183,10 +183,7 @@ class AuthController extends ChangeNotifier {
       'avatars/${_currentUser!.uid}.png',
     );
 
-    final metadata = SettableMetadata(
-      contentType:
-          'image/png', 
-    );
+    final metadata = SettableMetadata(contentType: 'image/png');
 
     await ref.putData(compressedBytes, metadata);
     return await ref.getDownloadURL();
@@ -371,4 +368,5 @@ class AuthController extends ChangeNotifier {
     _lifecycleNotifier?.removeListener(_handleAppLifecycle);
     super.dispose();
   }
+
 }
