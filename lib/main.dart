@@ -34,13 +34,16 @@ Future<void> setUpRemoteConfig() async {
   await remoteConfig.setConfigSettings(
     RemoteConfigSettings(
       fetchTimeout: const Duration(minutes: 1),
-      minimumFetchInterval: Duration.zero,
+      minimumFetchInterval: Duration(hours: 6),
     ),
   );
   await remoteConfig.setDefaults(const {
     C.rewardedAdsIntervalTag: 3,
     C.lockTimeLimitSecondsTag: 3600,
     C.debugVersionTag: false,
+    C.delaySecondsPopupReviewTag: 5,
+    C.dayBeforeReviewTag: 1,
+    C.minutesBeforeReviewTag: 15
   });
   remoteConfig.onConfigUpdated.listen((event) async {
     await remoteConfig.activate();

@@ -22,6 +22,7 @@ abstract class SettingsPersistence {
   Future<void> saveSeedColor(int value);
   Future<void> setToken(String value);
 
+
   Future<int> getLockTimeEnd();
   Future<int> saveLockTimeEnd(int newValue);
 
@@ -29,5 +30,10 @@ abstract class SettingsPersistence {
   Future<void> increaseRoundsWithoutAds();
   Future<void> resetRoundsWithoutAds();
 
+  Future<void> saveAppInstallTime();
+  Future<void> saveLastReviewAskTime();
+
+  Future<DateTime?> getAppInstallTime();
+  Future<DateTime?> getLastReviewAskTime();
   
 }

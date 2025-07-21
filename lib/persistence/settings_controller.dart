@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/widgets.dart';
 import 'package:logging/logging.dart';
 import 'package:operation_veritas/constants.dart';
@@ -29,9 +30,8 @@ class SettingsController {
   Timer? _lockTimeCheckTimer;
 
   /// Creates a new instance of [SettingsController] backed by [persistence].
-  SettingsController({
-    required SettingsPersistence persistence,
-  }) : _persistence = persistence;
+  SettingsController({required SettingsPersistence persistence})
+    : _persistence = persistence;
 
   /// Asynchronously loads values from the injected persistence store.
   Future<void> loadStateFromPersistence() async {
@@ -40,16 +40,14 @@ class SettingsController {
     await Future.wait([
       _persistence.getSoundsOn().then((value) => soundsOn.value = value),
       _persistence.getSeedColor().then((value) => seedColor.value = value),
-      _persistence
-          .getBlockedExpanded()
-          .then((value) => isBlockedExpanded.value = value),
-      _persistence
-          .getColorsExpanded()
-          .then((value) => isColorsExpanded.value = value),
-      _persistence
-          .getEulaAccepted()
-          .then((value) => isEulaAccepted = value),
-      _persistence.getLockTimeEnd().then((value) => lockTimeEnd.value = value)
+      _persistence.getBlockedExpanded().then(
+        (value) => isBlockedExpanded.value = value,
+      ),
+      _persistence.getColorsExpanded().then(
+        (value) => isColorsExpanded.value = value,
+      ),
+      _persistence.getEulaAccepted().then((value) => isEulaAccepted = value),
+      _persistence.getLockTimeEnd().then((value) => lockTimeEnd.value = value),
     ]);
     _log.info("loadStateFromPersistence");
     _lockTimeCheckTimer = Timer.periodic(const Duration(seconds: 1), (_) {
@@ -58,6 +56,7 @@ class SettingsController {
         saveLockTimeEnd(newValue: 0);
       }
     });
+    saveAppInstallTime();
   }
 
   void dispose() {
@@ -124,4 +123,51 @@ class SettingsController {
   Future<void> resetRoundsWithoutAds() async {
     await _persistence.resetRoundsWithoutAds();
   }
+
+  Future<void> saveAppInstallTime() async {
+    await _persistence.saveAppInstallTime();
+  }
+
+  Future<bool> canAskForReview({
+    required String? name,
+    required String? text,
+  }) async {
+
+    if (name == null || text == null || !text.contains(name)) {
+      return false; 
+    }
+
+    final now = DateTime.now().toUtc();
+
+    // Rule 2: Check if app was installed at least 15 minutes ago.
+    final installTime = await _persistence.getAppInstallTime();
+    if (installTime == null) {
+      // If we have no install time, we can't check the duration.
+      return false;
+    }
+
+    final minutes = FirebaseRemoteConfig.instance.getInt(C.minutesBeforeReviewTag);
+
+    if (now.difference(installTime).inMinutes < minutes) {
+      return false;
+    }
+
+    // Rule 3: Check when the last review was asked.
+    final lastAskTime = await _persistence.getLastReviewAskTime();
+    if (lastAskTime == null) {
+      // Never asked before. All other conditions have passed.
+      await _persistence.saveLastReviewAskTime();
+      return true;
+    }
+
+    final days = FirebaseRemoteConfig.instance.getInt(C.dayBeforeReviewTag);
+
+    // It has been asked before. Check if it was at least 1 day ago.
+    if (now.difference(lastAskTime).inDays >= days) {
+      await _persistence.saveLastReviewAskTime();
+      return true;
+    }
+    return false;
+  }
+
 }

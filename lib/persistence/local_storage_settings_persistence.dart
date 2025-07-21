@@ -55,8 +55,9 @@ class LocalStorageSettingsPersistence extends SettingsPersistence {
   Future<Map<String, String>> getBanned() async {
     final prefs = await instanceFuture;
     final bannedMapString = prefs.getString('bannedUsers');
-    final bannedMapObject =
-        Map<String, String>.from(jsonDecode(bannedMapString ?? "{}"));
+    final bannedMapObject = Map<String, String>.from(
+      jsonDecode(bannedMapString ?? "{}"),
+    );
     return bannedMapObject;
   }
 
@@ -93,46 +94,84 @@ class LocalStorageSettingsPersistence extends SettingsPersistence {
   @override
   Future<int> saveLockTimeEnd(int newValue) async {
     final prefs = await SharedPreferences.getInstance();
-    final lockTimeSeconds = FirebaseRemoteConfig.instance.getInt(C.lockTimeLimitSecondsTag);
+    final lockTimeSeconds = FirebaseRemoteConfig.instance.getInt(
+      C.lockTimeLimitSecondsTag,
+    );
     final lockTimeEnd = newValue == -1
         ? DateTime.now()
-            .add(Duration(seconds: lockTimeSeconds))
-            .toUtc()
-            .millisecondsSinceEpoch
+              .add(Duration(seconds: lockTimeSeconds))
+              .toUtc()
+              .millisecondsSinceEpoch
         : 0;
     await prefs.setInt('lockTimeEnd', lockTimeEnd);
     return lockTimeEnd;
   }
-  
+
   @override
   Future<int> getRoundsWithoutAds() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getInt('roundsWithoutAds') ?? 0;
   }
-  
+
   @override
   Future<void> increaseRoundsWithoutAds() async {
     final prefs = await SharedPreferences.getInstance();
     final currentRoundsWithoutAds = prefs.getInt('roundsWithoutAds') ?? 0;
     await prefs.setInt('roundsWithoutAds', currentRoundsWithoutAds + 1);
   }
-  
+
   @override
   Future<void> resetRoundsWithoutAds() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt('roundsWithoutAds', 0);
   }
-  
+
   @override
   Future<bool> getEulaAccepted() async {
     final prefs = await instanceFuture;
     return prefs.getBool('eulaAccepted') ?? false;
   }
-  
+
   @override
   Future<void> setEulaAccepted() async {
     final prefs = await instanceFuture;
     await prefs.setBool('eulaAccepted', true);
   }
 
+  static const _appInstallTimeKey = 'app_install_time';
+  static const _lastReviewAskTimeKey = 'last_review_ask_time';
+
+  @override
+  Future<DateTime?> getAppInstallTime() async {
+    final prefs = await instanceFuture;
+    final timeString = prefs.getString(_appInstallTimeKey);
+    return timeString != null ? DateTime.parse(timeString) : null;
+  }
+
+  @override
+  Future<DateTime?> getLastReviewAskTime() async {
+    final prefs = await instanceFuture;
+    final timeString = prefs.getString(_lastReviewAskTimeKey);
+    return timeString != null ? DateTime.parse(timeString) : null;
+  }
+
+  @override
+  Future<void> saveAppInstallTime() async {
+    final prefs = await instanceFuture;
+    if (prefs.getString(_appInstallTimeKey) == null) {
+      await prefs.setString(
+        _appInstallTimeKey,
+        DateTime.now().toUtc().toIso8601String(),
+      );
+    }
+  }
+
+  @override
+  Future<void> saveLastReviewAskTime() async {
+    final prefs = await instanceFuture;
+    await prefs.setString(
+      _lastReviewAskTimeKey,
+      DateTime.now().toUtc().toIso8601String(),
+    );
+  }
 }

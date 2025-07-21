@@ -5,6 +5,7 @@ import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:in_app_review/in_app_review.dart';
 import 'package:operation_veritas/audio/audio_controller.dart';
 import 'package:operation_veritas/audio/sounds.dart';
 import 'package:operation_veritas/auth_services/auth_controller.dart';
@@ -193,6 +194,7 @@ class TriviaService extends ChangeNotifier {
     } else if (newMessage.messageType == "round_end") {
       audioController?.playSfx(SfxType.roundEnd);
     }
+    
   }
 
   Future<void> showAdWhenNeeded(Message message) async {
@@ -209,8 +211,18 @@ class TriviaService extends ChangeNotifier {
     if (comparisonResult == 0 || comparisonResult == 1) {
       settingsController?.saveLockTimeEnd();
       await settingsController?.resetRoundsWithoutAds();
+    } else {
+      final delay = FirebaseRemoteConfig.instance.getInt(C.delaySecondsPopupReviewTag);
+      final InAppReview inAppReview = InAppReview.instance;
+      final canAskReview = await settingsController?.canAskForReview(name: authController?.currentUser?.displayName, text: message.text) == true;
+      if (canAskReview && await inAppReview.isAvailable()) {
+          await Future.delayed(Duration(seconds: delay));
+          inAppReview.requestReview();
+      }
     }
   }
+
+  
 
   Future<void> sendMessage(String text) async {
     if (text.isEmpty) return;
