@@ -144,19 +144,6 @@ class MenuDrawer extends StatelessWidget {
               ),
             ),
 
-            Consumer<AuthController>(
-              builder: (context, auth, child) {
-                if (!auth.isLeaderboardAvailable) return SizedBox.shrink();
-                return ListTile(
-                  leading: Icon(Icons.leaderboard),
-                  title: Text(local.leaderboard),
-                  onTap: () {
-                    auth.showLeaderboard();
-                  },
-                );
-              },
-            ),
-
             Consumer<MoneyController>(
               builder: (context, money, child) {
                 return ListTile(

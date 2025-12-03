@@ -114,12 +114,14 @@ class TriviaService extends ChangeNotifier {
     final publicRoundScore = publicScore["publicRoundScore"];
     statsService?.setPublicQuestionScore(publicQuestionScore);
     statsService?.setPublicRoundScore(publicRoundScore);
+    /*
     if (publicQuestionScore != null) {
       authController?.submitQuestionScore(publicQuestionScore);
     }
     if (publicRoundScore != null) {
       authController?.submitRoundScore(publicRoundScore);
     }
+    */
 
     List<int> streak;
     if (streakDynamic is List) {
@@ -162,7 +164,7 @@ class TriviaService extends ChangeNotifier {
         photoUrl: message['photoUrl'] ?? '',
         questionWinnerUid: message['questionWinnerUid'] ?? '',
         correctAnswerId: message['correctAnswerId'] ?? '',
-        realPlayerId: authController?.gameServicesPlayerId
+        realPlayerId: authController?.currentUser?.uid
       );
       handleSfx(newMessage);
       if (newMessage.messageType == "question") {
@@ -234,7 +236,7 @@ class TriviaService extends ChangeNotifier {
         'text': text,
         'isBot': false,
         'timestamp': ServerValue.timestamp,
-        'photoUrl': (Platform.isAndroid ? "${authController?.currentUser?.photoURL}=s128" : authController?.playerImage) ?? '',
+        'photoUrl': null,
       });
     } catch (e) {
       rethrow; // Rethrow to allow UI to handle the error

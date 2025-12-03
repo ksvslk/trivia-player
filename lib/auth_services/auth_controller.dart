@@ -1,55 +1,45 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
-import 'dart:typed_data';
+import 'dart:io' show Platform;
+import 'dart:math';
+import 'package:operation_veritas/extensions.dart';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_image_compress/flutter_image_compress.dart';
-import 'package:games_services/games_services.dart' as gs;
-import 'package:games_services/games_services.dart';
 import 'package:logging/logging.dart';
 import 'package:operation_veritas/persistence/settings_controller.dart';
 
 enum AuthState {
   authenticated,
-  signingIntoGameServices,
   signingIntoFirebase,
+  waitingToRetry,
   failed,
 }
 
 class AuthController extends ChangeNotifier {
   static final Logger _log = Logger('AuthController');
 
-  // Configuration
-  final String androidWebClientID =
-      '730456293701-nepun8t1d5u90rm9qrohhjbb9ujp7d5o.apps.googleusercontent.com';
-  final String androidRoundLeaderboard = 'CgkIxYLalKEVEAIQAQ';
-  final String androidQuestionLeaderboard = 'CgkIxYLalKEVEAIQAg';
-  final String iosdRoundLeaderboard = 'CgkIxYLalKEVEAIQAQ';
-  final String iosQuestionLeaderboard = 'CgkIxYLalKEVEAIQAg';
-
-  // State
-  AuthState _authState = AuthState.signingIntoGameServices;
+  // --- State ---
+  AuthState _authState = AuthState.signingIntoFirebase;
   User? _currentUser;
   String _playerName = "Player";
   String _errorMessage = "";
-  bool _isGameServicesAvailable = false;
-  String? gameServicesPlayerId;
-  String? playerImage = "";
 
-  // Dependencies
+  // --- Exponential Backoff Configuration ---
+  int _retryCount = 0;
+  static const int _maxRetries = 5;
+  static const int _initialDelaySeconds = 2;
+
+  // --- Dependencies ---
   SettingsController? _settings;
   ValueNotifier<AppLifecycleState>? _lifecycleNotifier;
 
-  // Getters
+  // --- Getters ---
   AuthState get authState => _authState;
   String get errorMessage => _errorMessage;
   User? get currentUser => _currentUser;
   String get playerName => _playerName;
-  bool get isLeaderboardAvailable => _isGameServicesAvailable;
   bool get isAuthenticated => _currentUser != null;
 
   AuthController() {
@@ -57,188 +47,138 @@ class AuthController extends ChangeNotifier {
   }
 
   Future<void> initialize() async {
-    _authState = AuthState.signingIntoGameServices;
-    _errorMessage = "";
-    notifyListeners();
+    if (_authState != AuthState.waitingToRetry) {
+      _authState = AuthState.signingIntoFirebase;
+      _errorMessage = "";
+      notifyListeners();
+    }
 
     try {
-      // Step 1: Sign into Game Services
-      await _signIntoGameServices();
+      // Step 1: Sign in and set up the player profile.
+      await _signInAndSetupPlayerProfile();
 
-      // Step 2: Sign into Firebase
-      _authState = AuthState.signingIntoFirebase;
-      notifyListeners();
-
-      await _signIntoFirebase();
-
-      // Step 3: Success - setup post-auth
+      // Step 2: Success
       _authState = AuthState.authenticated;
+      _log.info(
+          'Auth & profile setup successful for $_playerName (UID: ${_currentUser?.uid})');
 
-      // Initialize notifications after successful auth
+      _retryCount = 0;
+      _subscribeToSomeoneIsPlayingNotification();
       _initializeNotifications();
       _handlePostAuthNotifications();
     } catch (e) {
-      _authState = AuthState.failed;
-      _errorMessage = e.toString();
-      _log.log(Level.SEVERE, 'Authentication failed: $e');
-    }
+      _log.warning('Auth attempt #${_retryCount + 1} failed: $e');
 
+      if (_retryCount < _maxRetries) {
+        _retryCount++;
+        final baseDelay = _initialDelaySeconds * pow(2, _retryCount - 1);
+        final jitter = Random().nextInt(2) - 1; // -1, 0, or 1
+        final delayInSeconds = (baseDelay + jitter).toInt().clamp(1, 60);
+        final delay = Duration(seconds: delayInSeconds);
+
+        _authState = AuthState.waitingToRetry;
+        _errorMessage =
+            'Connection failed. Retrying in ${delay.inSeconds} seconds...';
+        notifyListeners();
+
+        _log.info(
+            'Scheduling retry #${_retryCount} in ${delay.inSeconds} seconds.');
+        await Future.delayed(delay);
+        await initialize();
+        return;
+      } else {
+        _authState = AuthState.failed;
+        _errorMessage =
+            'Authentication failed after $_maxRetries attempts. Please check your connection and try again.';
+        _log.severe('Authentication failed after max retries.');
+      }
+    }
     notifyListeners();
   }
 
-  Future<void> _signIntoGameServices() async {
-    try {
-      await gs.GamesServices.signIn();
-      gameServicesPlayerId = await gs.GamesServices.getPlayerID();
-      if (gameServicesPlayerId == null || gameServicesPlayerId!.isEmpty) {
-        throw Exception('Game Services sign-in failed: No player ID received');
-      }
-      _isGameServicesAvailable = true;
-    } catch (e) {
-      _isGameServicesAvailable = false;
-      _log.log(Level.SEVERE, 'Game Services sign-in failed: $e');
-      throw Exception('Game Services sign-in failed: $e');
-    }
+  Future<void> _subscribeToSomeoneIsPlayingNotification() async {
+     FirebaseMessaging.onMessage.listen((RemoteMessage message) {});
+     await FirebaseMessaging.instance.subscribeToTopic('someone_is_playing');
   }
 
-  Future<void> _signIntoFirebase() async {
+  /// Handles anonymous sign-in and fetches or creates a player profile in Firestore.
+  Future<void> _signInAndSetupPlayerProfile() async {
     try {
-      final credential = await _getPlatformCredential();
-      if (credential == null) {
-        throw Exception(
-          'Failed to get platform credential - check androidWebClientID configuration',
-        );
-      }
-      final userCredential = await FirebaseAuth.instance.signInWithCredential(
-        credential,
-      );
+      // Part A: Sign in to Firebase Auth
+      final userCredential = await FirebaseAuth.instance.signInAnonymously();
       _currentUser = userCredential.user;
 
       if (_currentUser == null) {
-        throw Exception(
-          'Firebase returned null user despite successful credential',
-        );
+        throw Exception('Firebase returned null user after anonymous sign-in.');
       }
-      _playerName = _currentUser?.displayName ?? "Player";
-      // Upload player image
-      await _uploadPlayerImage();
-    } catch (e) {
-      _log.log(Level.SEVERE, 'Firebase sign-in failed: $e');
-      throw Exception('Firebase sign-in failed: $e');
-    }
-  }
 
-  Future<void> _uploadPlayerImage() async {
-    try {
-      final playerData = await gs.GameAuth.player.first;
-      if (playerData?.iconImage?.isNotEmpty == true) {
-        // Check if we need to upload (only if file is older than a week)
-        final ref = FirebaseStorage.instance.ref(
-          'avatars/${_currentUser!.uid}.png',
-        );
-        bool shouldUpload = true;
+      // Here is where the user ID is put into the 'uid' variable
+      final uid = _currentUser!.uid; // <-- THE ID IS STORED HERE
 
-        try {
-          final metadata = await ref.getMetadata();
-          final lastModified = metadata.updated ?? metadata.timeCreated;
-          if (lastModified != null) {
-            final weekAgo = DateTime.now().subtract(const Duration(days: 7));
-            shouldUpload = lastModified.isBefore(weekAgo);
-          }
-        } catch (e) {
-          // File doesn't exist, so we should upload
-          shouldUpload = true;
-        }
+      // The 'uid' variable is used here to get the correct document from Firestore
+      final playerDocRef =
+          FirebaseFirestore.instance.collection('players').doc(uid); // <-- USED HERE
 
-        if (shouldUpload) {
-          playerImage = await _uploadImage(playerData!.iconImage!);
-        } else {
-          playerImage = await ref.getDownloadURL();
-        }
+      // Part B: Fetch or create profile in Firestore
+      final playerDoc = await playerDocRef.get();
+
+      if (playerDoc.exists) {
+        // Player exists, load their data
+        final data = playerDoc.data() as Map<String, dynamic>;
+        _playerName = data['playerName'] ?? 'Player';
+        _log.info('Existing player profile loaded for $uid.');
       } else {
-        playerImage = "";
+        // The 'uid' variable is used here to generate the username
+        _playerName = uid.generateLifelikeUsername(); // <-- USED HERE
+
+        await playerDocRef.set({
+          'playerName': _playerName,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+        _log.info('New player profile created for $uid with name: $_playerName');
       }
     } catch (e) {
-      _log.log(Level.WARNING, 'Error uploading avatar (non-fatal): $e');
-      playerImage = "";
-    }
-  }
-
-  Future<String> _uploadImage(String base64Image) async {
-    Uint8List originalBytes = base64Decode(base64Image);
-
-    const int minWidth = 128;
-    const int minHeight = 128;
-    const int quality = 85;
-
-    Uint8List? compressedBytes = await FlutterImageCompress.compressWithList(
-      originalBytes,
-      minWidth: minWidth,
-      minHeight: minHeight,
-      quality: quality,
-      format: CompressFormat.png,
-    );
-
-    final ref = FirebaseStorage.instance.ref(
-      'avatars/${_currentUser!.uid}.png',
-    );
-
-    final metadata = SettableMetadata(contentType: 'image/png');
-
-    await ref.putData(compressedBytes, metadata);
-    return await ref.getDownloadURL();
-  }
-
-  Future<AuthCredential?> _getPlatformCredential() async {
-    try {
-      if (Platform.isAndroid && androidWebClientID.isNotEmpty) {
-        final authCode = await GameAuth.getAuthCode(androidWebClientID);
-        if (authCode != null) {
-          return PlayGamesAuthProvider.credential(serverAuthCode: authCode);
-        } else {
-          throw Exception('Failed to get Android auth code');
-        }
-      } else if (Platform.isIOS || Platform.isMacOS) {
-        return GameCenterAuthProvider.credential();
-      } else {
-        throw Exception('Unsupported platform or missing androidWebClientID');
-      }
-    } catch (e) {
-      _log.log(Level.SEVERE, 'Platform credential failed: $e');
+      _log.severe('Player sign-in or profile setup failed: $e');
       rethrow;
     }
   }
 
-  // Notification logic
+  /// Manually triggers a new authentication attempt and resets the backoff counter.
+  Future<void> retry() async {
+    _log.info('Manual retry initiated.');
+    _retryCount = 0;
+    _authState = AuthState.signingIntoFirebase;
+    await initialize();
+  }
+
+  // --- Notification Logic ---
+
   void _initializeNotifications() {
     _askNotificationPermissions().catchError(
       (e) => _log.warning('Notification permission failed: $e'),
     );
 
-    if (Platform.isMacOS || Platform.isIOS) {
+    if (Platform.isIOS || Platform.isMacOS) {
       FirebaseMessaging.instance.getAPNSToken().catchError(
-        (e) => _log.log(Level.WARNING, 'APNS token failed: $e'),
-      );
+            (e) => _log.warning('APNS token failed: $e'),
+          );
     }
 
     FirebaseMessaging.instance.onTokenRefresh.listen(
       (token) => _checkAndStoreToken(token),
-      onError: (e) => _log.log(Level.WARNING, 'Token refresh error: $e'),
+      onError: (e) => _log.warning('Token refresh error: $e'),
     );
   }
 
   void _handlePostAuthNotifications() {
-    FirebaseMessaging.instance
-        .getToken()
-        .then((token) {
-          if (token != null) {
-            _checkAndStoreToken(token);
-          }
-          _checkInUser();
-        })
-        .catchError(
-          (e) => _log.log(Level.WARNING, 'Post-auth notifications failed: $e'),
-        );
+    FirebaseMessaging.instance.getToken().then((token) {
+      if (token != null) {
+        _checkAndStoreToken(token);
+      }
+      _checkInUser();
+    }).catchError(
+      (e) => _log.warning('Post-auth notifications failed: $e'),
+    );
   }
 
   Future<void> _askNotificationPermissions() async {
@@ -256,7 +196,8 @@ class AuthController extends ChangeNotifier {
   Future<void> _checkAndStoreToken(String token) async {
     try {
       final tokenStored = await _settings?.getToken() ?? '';
-      final uid = _currentUser?.uid;
+      // Here the user ID is retrieved again to use for notifications
+      final uid = _currentUser?.uid; // <-- THE ID IS ACCESSED HERE
 
       if (uid != null && token.isNotEmpty && tokenStored != token) {
         final deviceToken = {
@@ -265,12 +206,12 @@ class AuthController extends ChangeNotifier {
           'checkInTimestamp': FieldValue.serverTimestamp(),
         };
 
-        final collection = Platform.isAndroid
-            ? 'fcmTokensAndroid'
-            : 'fcmTokensIos';
+        final collection =
+            Platform.isAndroid ? 'fcmTokensAndroid' : 'fcmTokensIos';
+        // The 'uid' is used here to store the notification token
         await FirebaseFirestore.instance
             .collection(collection)
-            .doc(uid)
+            .doc(uid) // <-- USED HERE
             .set(deviceToken);
         await _settings?.setToken(token);
         _log.info('FCM token stored');
@@ -282,15 +223,17 @@ class AuthController extends ChangeNotifier {
 
   Future<void> _checkInUser() async {
     try {
-      final uid = _currentUser?.uid;
+      // Here the user ID is retrieved again for the check-in
+      final uid = _currentUser?.uid; // <-- THE ID IS ACCESSED HERE
+
       if (uid != null) {
         final data = {'checkInTimestamp': FieldValue.serverTimestamp()};
-        final collection = Platform.isAndroid
-            ? 'fcmTokensAndroid'
-            : 'fcmTokensIos';
+        final collection =
+            Platform.isAndroid ? 'fcmTokensAndroid' : 'fcmTokensIos';
+        // The 'uid' is used here to update the user's last active time
         await FirebaseFirestore.instance
             .collection(collection)
-            .doc(uid)
+            .doc(uid) // <-- USED HERE
             .update(data);
         _log.info('User check-in updated');
       }
@@ -299,51 +242,8 @@ class AuthController extends ChangeNotifier {
     }
   }
 
-  // Leaderboard methods
-  void showLeaderboard() async {
-    if (!_isGameServicesAvailable) return;
-    try {
-      await Leaderboards.showLeaderboards();
-    } catch (e) {
-      _log.warning('Show leaderboard failed: $e');
-    }
-  }
+  // --- Dependencies & Lifecycle ---
 
-  void submitRoundScore(int score) async {
-    if (!_isGameServicesAvailable) return;
-    try {
-      await Leaderboards.submitScore(
-        score: Score(
-          androidLeaderboardID: androidRoundLeaderboard,
-          iOSLeaderboardID: iosdRoundLeaderboard,
-          value: score,
-        ),
-      );
-    } catch (e) {
-      _log.log(Level.WARNING, 'Submit round score failed: $e');
-    }
-  }
-
-  void submitQuestionScore(int score) async {
-    if (!_isGameServicesAvailable) return;
-    try {
-      await Leaderboards.submitScore(
-        score: Score(
-          androidLeaderboardID: androidQuestionLeaderboard,
-          iOSLeaderboardID: iosQuestionLeaderboard,
-          value: score,
-        ),
-      );
-    } catch (e) {
-      _log.log(Level.WARNING, 'Submit question score failed: $e');
-    }
-  }
-
-  Future<void> retry() async {
-    await initialize();
-  }
-
-  // Dependencies
   void attachSettings(SettingsController settingsController) {
     _settings = settingsController;
   }
@@ -368,5 +268,4 @@ class AuthController extends ChangeNotifier {
     _lifecycleNotifier?.removeListener(_handleAppLifecycle);
     super.dispose();
   }
-
 }

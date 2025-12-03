@@ -6,6 +6,7 @@ import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import 'package:logging/logging.dart';
@@ -137,6 +138,33 @@ class MyApp extends StatelessWidget {
   final AuthController authController;
   final StatsService statsService;
 
+  // 1. Define the Key and Router as static final so they persist
+  //    without needing a StatefulWidget.
+  static final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
+
+  static final GoRouter _router = GoRouter(
+    navigatorKey: _rootNavigatorKey,
+    initialLocation: '/',
+    routes: [
+      GoRoute(
+        path: '/',
+        builder: (context, state) => HomeScreen(navigatorKey: _rootNavigatorKey),
+        routes: [
+          // Catches: https://yourdomain.com/event/anything
+          GoRoute(
+            path: 'event/:id', 
+            builder: (context, state) {
+              // We ignore the ID and just show the Home Screen
+              return HomeScreen(navigatorKey: _rootNavigatorKey);
+            },
+          ),
+        ],
+      ),
+    ],
+    // Fallback for weird links
+    errorBuilder: (context, state) => HomeScreen(navigatorKey: _rootNavigatorKey),
+  );
+
   const MyApp({
     super.key,
     required this.settingsController,
@@ -264,10 +292,7 @@ class MyApp extends StatelessWidget {
                 fontFamily: 'Inter',
               );
 
-              final GlobalKey<NavigatorState> navigatorKey =
-                  GlobalKey<NavigatorState>();
-
-              return MaterialApp(
+              return MaterialApp.router(
                 title: 'Trivia Chat',
                 localizationsDelegates: [
                   AppLocalizations.delegate,
@@ -286,9 +311,7 @@ class MyApp extends StatelessWidget {
                 debugShowCheckedModeBanner: false,
                 theme: lightTheme,
                 darkTheme: darkTheme,
-                navigatorKey: navigatorKey, // Add navigator key here
-
-                home: HomeScreen(navigatorKey: navigatorKey),
+                routerConfig: _router,
               );
             },
           );

@@ -81,10 +81,12 @@ class AudioController {
     }
 
     // Check if app is in foreground (don't play sounds when backgrounded)
+    /*
     if (_lifecycleNotifier?.value != AppLifecycleState.resumed) {
       return;
     }
-
+    */
+    
     switch (type) {
       case SfxType.bell:
         SoLoud.instance.play(bell);
